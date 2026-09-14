@@ -21,8 +21,7 @@
    1. NAVEGAÇÃO EM TELAS MÓVEIS
    ========================================================= */
 
-.mobile-bottom-nav,
-.mobile-quick-nav {
+.mobile-bottom-nav {
     display: none;
 }
 
@@ -373,22 +372,14 @@
        Navegação mobile deve continuar escondida
        ----------------------------------------------------- */
 
-    .mobile-quick-nav,
-    .mobile-bottom-nav,
-    .caige-mobile-bottom-nav,
-    .bottom-nav,
-    .quick-nav {
+    .mobile-bottom-nav {
         display: none !important;
-
         visibility: hidden;
-
         opacity: 0;
-
         pointer-events: none;
     }
 
-    body.caige-has-mobile-bottom-nav,
-    body.caige-mobile-quicknav {
+    body.caige-has-mobile-bottom-nav {
         padding-bottom: 0 !important;
     }
 }
@@ -429,20 +420,19 @@
         width: 100%;
         max-width: 100%;
         min-width: 0;
-        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+        padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
     }
 
-    body.caige-has-mobile-bottom-nav,
-    body.caige-mobile-quicknav {
+    body.caige-has-mobile-bottom-nav {
         padding-bottom: 0 !important;
     }
 
     .mobile-bottom-nav,
     body.caige-has-mobile-bottom-nav .mobile-bottom-nav {
         position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+        left: 0;
+        right: 0;
+        bottom: 0;
         z-index: 9999;
 
         display: grid !important;
@@ -453,16 +443,17 @@
         grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 4px;
 
-        width: auto;
-        height: 56px;
-        max-width: 480px;
-        margin: 0 auto;
-        padding: 4px;
+        width: 100%;
+        height: calc(64px + env(safe-area-inset-bottom, 0px));
+        max-width: none;
+        margin: 0;
+        padding: 4px 12px calc(4px + env(safe-area-inset-bottom, 0px));
 
         background: var(--surface);
-        border: 1px solid var(--border-default);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-md);
+        border: 0;
+        border-top: 1px solid var(--border-default);
+        border-radius: 0;
+        box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.12);
 
         overflow: hidden;
         box-sizing: border-box;
@@ -579,8 +570,7 @@
        Compensação pela navegação inferior
        ----------------------------------------------------- */
 
-    body.caige-has-mobile-bottom-nav,
-    body.caige-mobile-quicknav {
+    body.caige-has-mobile-bottom-nav {
         padding-bottom: 0;
     }
 
@@ -632,8 +622,7 @@
 
 
         padding:
-            0 10px calc(env(safe-area-inset-bottom,
-                    0px) + 84px);
+            0 10px calc(76px + env(safe-area-inset-bottom, 0px));
 
         background:
             linear-gradient(90deg,
@@ -1167,15 +1156,9 @@
     body.caige-has-mobile-bottom-nav .mobile-bottom-nav {
         position: fixed;
 
-        left: 12px;
-        right: 12px;
-
-        bottom:
-            calc(
-                env(safe-area-inset-bottom, 0px)
-                + 8px
-                + var(--caige-mobile-nav-bottom-extra, 0px)
-            );
+        left: 0;
+        right: 0;
+        bottom: 0;
 
         z-index: 9999;
 
@@ -1187,36 +1170,26 @@
 
         gap: 4px;
 
-        height: 56px;
+        width: 100%;
+        height: calc(64px + env(safe-area-inset-bottom, 0px));
+        max-width: none;
 
-        max-width: 480px;
+        margin: 0;
 
-        margin: 0 auto;
-
-        padding: 4px;
+        padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
 
         background: var(--surface);
 
-        border: 1px solid var(--border-default);
+        border: 0;
+        border-top: 1px solid var(--border-default);
 
-        border-radius: var(--radius-lg);
+        border-radius: 0;
 
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.12);
 
         overflow: hidden;
 
         box-sizing: border-box;
-
-    }
-
-    @supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
-        .mobile-bottom-nav,
-        body.caige-has-mobile-bottom-nav .mobile-bottom-nav {
-            background: var(--surface-translucent);
-            border-color: var(--border-translucent);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
     }
 
 
@@ -1357,16 +1330,6 @@
         gap: 7px;
     }
 
-    .mobile-bottom-nav,
-    body.caige-has-mobile-bottom-nav .mobile-bottom-nav {
-        left: 8px;
-        right: 8px;
-
-        height: 56px;
-
-        padding: 4px;
-    }
-
     .mobile-bottom-nav__label {
         font-size: 10.5px;
     }
@@ -1425,14 +1388,7 @@
 
     .mobile-bottom-nav,
     body.caige-has-mobile-bottom-nav .mobile-bottom-nav {
-        left: 6px;
-        right: 6px;
-
         gap: 2px;
-
-        height: 56px;
-
-        padding: 3px;
     }
 
     .mobile-bottom-nav__label {
@@ -1454,45 +1410,15 @@
 
 @media (min-width: 1025px) {
 
-    .mobile-bottom-nav,
-    .mobile-quick-nav,
-    .caige-mobile-bottom-nav,
-    .bottom-nav,
-    .quick-nav {
+    .mobile-bottom-nav {
         display: none !important;
-
         visibility: hidden !important;
-
         opacity: 0 !important;
-
         pointer-events: none !important;
     }
 
-    body.caige-has-mobile-bottom-nav,
-    body.caige-mobile-quicknav {
+    body.caige-has-mobile-bottom-nav {
         padding-bottom: 0 !important;
-    }
-}
-
-/* =========================================================
-   AJUSTE FINAL DA NAVEGAÇÃO INFERIOR MOBILE
-   ========================================================= */
-
-@media (max-width: 767px) {
-
-    .mobile-bottom-nav,
-    .mobile-quick-nav {
-        bottom:
-            calc(env(safe-area-inset-bottom,
-                    0px) + 8px);
-    }
-
-    .content,
-    .activities-content,
-    .app-content {
-        padding-bottom:
-            calc(env(safe-area-inset-bottom,
-                    0px) + 84px);
     }
 }
 
@@ -1898,18 +1824,13 @@
    ========================================================= */
 @media print {
     #mobile-bottom-nav,
-    .mobile-bottom-nav,
-    .mobile-quick-nav,
-    .caige-mobile-bottom-nav,
-    .bottom-nav,
-    .quick-nav {
+    .mobile-bottom-nav {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
     }
 
-    body.caige-has-mobile-bottom-nav,
-    body.caige-mobile-quicknav {
+    body.caige-has-mobile-bottom-nav {
         padding-bottom: 0 !important;
     }
 }
