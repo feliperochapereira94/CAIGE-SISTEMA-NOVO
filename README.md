@@ -64,7 +64,6 @@ CAIGE/
 │   └── manutencao/
 ├── DESIGN_SYSTEM.md
 ├── REGRAS_PROJETO.md
-└── PROMPT_IA.md
 ```
 
 ## Execução rápida
