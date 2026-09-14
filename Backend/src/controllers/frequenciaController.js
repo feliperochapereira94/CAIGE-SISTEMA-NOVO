@@ -1,0 +1,634 @@
+import pool from '../models/database.js';
+import { registrarMovimentacao } from '../models/movimentacoesModel.js';
+import { parsePagination, parsePositiveInt } from '../models/validacaoModel.js';
+
+async function consultaFrequencias(filtros = {}) {
+  const parametros = [];
+  let consulta = `SELECT f.id, f.id_paciente AS idPaciente, p.nome AS paciente,
+    f.id_atividade AS idAtividade, aa.nome AS atividade, c.id AS idCurso, c.nome AS curso,
+    f.id_profissional AS idProfissional, u.nome AS profissional,
+    DATE_FORMAT(f.registrado_em, '%Y-%m-%d') AS data,
+    DATE_FORMAT(f.registrado_em, '%H:%i') AS horario,
+    f.registrado_em AS registradoEm,
+    f.observacoes AS observacoes
+    FROM frequencia f 
+    JOIN pacientes p ON p.id = f.id_paciente
+    LEFT JOIN atividades_atendimento aa ON aa.id = f.id_atividade
+    LEFT JOIN cursos c ON c.id = aa.id_curso
+    LEFT JOIN usuarios u ON u.id = f.id_profissional
+    WHERE 1 = 1`;
+
+  if (Array.isArray(filtros.idsPacientes) && filtros.idsPacientes.length > 0) {
+    const marcadores = filtros.idsPacientes.map(() => '?').join(', ');
+    consulta += ` AND f.id_paciente IN (${marcadores})`;
+    parametros.push(...filtros.idsPacientes);
+  } else if (filtros.idPaciente) {
+    consulta += ' AND f.id_paciente = ?';
+    parametros.push(filtros.idPaciente);
+  }
+  if (filtros.dataInicio) { consulta += ' AND DATE(f.registrado_em) >= ?'; parametros.push(filtros.dataInicio); }
+  if (filtros.dataFim) { consulta += ' AND DATE(f.registrado_em) <= ?'; parametros.push(filtros.dataFim); }
+  if (filtros.idCurso) { consulta += ' AND aa.id_curso = ?'; parametros.push(filtros.idCurso); }
+  if (filtros.idCursoUsuario) { consulta += ' AND aa.id_curso = ?'; parametros.push(filtros.idCursoUsuario); }
+  if (filtros.idAtividade) { consulta += ' AND f.id_atividade = ?'; parametros.push(filtros.idAtividade); }
+  if (filtros.idProfissional) { consulta += ' AND f.id_profissional = ?'; parametros.push(filtros.idProfissional); }
+  if (filtros.nomePaciente) { consulta += ' AND p.nome LIKE ?'; parametros.push(`%${filtros.nomePaciente}%`); }
+  consulta += ' ORDER BY f.registrado_em DESC, f.id DESC';
+  const [registros] = await pool.query(consulta, parametros);
+  return registros;
+}
+
+
+function normalizarDataIso(valor) {
+  const texto = String(valor || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(texto) ? texto : null;
+}
+
+function criarDataUtc(dataIso) {
+  const [ano, mes, dia] = String(dataIso).split('-').map(Number);
+  return new Date(Date.UTC(ano, mes - 1, dia));
+}
+
+function formatarDataUtc(data) {
+  return data.toISOString().slice(0, 10);
+}
+
+function maiorData(...datas) {
+  return datas.filter(Boolean).sort().at(-1) || null;
+}
+
+function menorData(...datas) {
+  return datas.filter(Boolean).sort().at(0) || null;
+}
+
+function contarOcorrenciasGrade(inicio, fim, diaSemana) {
+  if (!inicio || !fim || inicio > fim) return [];
+
+  const atual = criarDataUtc(inicio);
+  const limite = criarDataUtc(fim);
+  const ocorrencias = [];
+
+  while (atual <= limite) {
+    const diaIso = atual.getUTCDay() === 0 ? 7 : atual.getUTCDay();
+    if (diaIso === Number(diaSemana)) ocorrencias.push(formatarDataUtc(atual));
+    atual.setUTCDate(atual.getUTCDate() + 1);
+  }
+
+  return ocorrencias;
+}
+
+async function montarCalendarioFrequencia(filtros = {}) {
+  if (filtros.idProfissional) {
+    return {
+      disponivel: false,
+      motivo: 'O calendário simplificado não diferencia profissionais.',
+      datasPrevistas: [],
+      periodos: []
+    };
+  }
+
+  let idCursoAlvo = filtros.idCurso || filtros.idCursoUsuario || null;
+  let atividade = null;
+
+  if (filtros.idAtividade) {
+    const [atividades] = await pool.query(
+      'SELECT id, id_curso AS idCurso, nome FROM atividades_atendimento WHERE id = ? AND ativo = TRUE',
+      [filtros.idAtividade]
+    );
+    atividade = atividades[0] || null;
+    if (!atividade) {
+      return { disponivel: false, motivo: 'Atividade não encontrada.', datasPrevistas: [], periodos: [] };
+    }
+    if (idCursoAlvo && Number(idCursoAlvo) !== Number(atividade.idCurso)) {
+      return { disponivel: false, motivo: 'A atividade não pertence ao curso selecionado.', datasPrevistas: [], periodos: [] };
+    }
+    idCursoAlvo = Number(atividade.idCurso);
+  }
+
+  if (!idCursoAlvo) {
+    return {
+      disponivel: false,
+      motivo: 'Selecione um curso ou uma atividade para calcular a frequência.',
+      datasPrevistas: [],
+      periodos: []
+    };
+  }
+
+  const [periodos] = await pool.query(
+    `SELECT id, ano, semestre,
+            DATE_FORMAT(data_inicio, '%Y-%m-%d') AS dataInicio,
+            DATE_FORMAT(data_fim, '%Y-%m-%d') AS dataFim,
+            status
+       FROM periodos_letivos
+      WHERE data_inicio <= ? AND data_fim >= ?
+        AND status IN ('ATIVO','ENCERRADO')
+      ORDER BY data_inicio`,
+    [filtros.dataFim, filtros.dataInicio]
+  );
+
+  if (!periodos.length) {
+    return {
+      disponivel: false,
+      motivo: 'Não existe semestre ativo ou encerrado cobrindo o período informado.',
+      datasPrevistas: [],
+      periodos: []
+    };
+  }
+
+  const idsPeriodos = periodos.map((periodo) => periodo.id);
+  const marcadores = idsPeriodos.map(() => '?').join(', ');
+  const parametros = [...idsPeriodos, idCursoAlvo];
+  let consultaGrade = `SELECT id, id_periodo AS idPeriodo, id_curso AS idCurso,
+                              id_atividade AS idAtividade, dia_semana AS diaSemana
+                         FROM grade_periodo_letivo
+                        WHERE id_periodo IN (${marcadores})
+                          AND id_curso = ?`;
+
+  if (filtros.idAtividade) {
+    consultaGrade += ' AND (id_atividade = ? OR id_atividade IS NULL)';
+    parametros.push(filtros.idAtividade);
+  } else {
+    consultaGrade += ' AND id_atividade IS NULL';
+  }
+
+  consultaGrade += ' ORDER BY id_periodo, dia_semana';
+  const [gradeCandidata] = await pool.query(consultaGrade, parametros);
+
+  const gradeSelecionada = [];
+  periodos.forEach((periodo) => {
+    const linhasPeriodo = gradeCandidata.filter((linha) => Number(linha.idPeriodo) === Number(periodo.id));
+    if (filtros.idAtividade) {
+      const especificas = linhasPeriodo.filter((linha) => Number(linha.idAtividade) === Number(filtros.idAtividade));
+      gradeSelecionada.push(...(especificas.length ? especificas : linhasPeriodo.filter((linha) => !linha.idAtividade)));
+    } else {
+      gradeSelecionada.push(...linhasPeriodo);
+    }
+  });
+
+  if (!gradeSelecionada.length) {
+    return {
+      disponivel: false,
+      motivo: filtros.idAtividade
+        ? 'A atividade selecionada ainda não possui dias configurados neste semestre.'
+        : 'O curso selecionado ainda não possui dias gerais configurados neste semestre.',
+      datasPrevistas: [],
+      periodos
+    };
+  }
+
+  const [excecoes] = await pool.query(
+    `SELECT id_periodo AS idPeriodo, id_grade AS idGrade,
+            DATE_FORMAT(data, '%Y-%m-%d') AS data
+       FROM excecoes_periodo_letivo
+      WHERE id_periodo IN (${marcadores})`,
+    idsPeriodos
+  );
+
+  const excecoesGerais = new Set(
+    excecoes.filter((item) => !item.idGrade).map((item) => `${item.idPeriodo}|${item.data}`)
+  );
+  const excecoesEspecificas = new Set(
+    excecoes.filter((item) => item.idGrade).map((item) => `${item.idGrade}|${item.data}`)
+  );
+  const datasPrevistas = new Set();
+
+  gradeSelecionada.forEach((grade) => {
+    const periodo = periodos.find((item) => Number(item.id) === Number(grade.idPeriodo));
+    if (!periodo) return;
+
+    const inicio = maiorData(filtros.dataInicio, normalizarDataIso(periodo.dataInicio));
+    const fim = menorData(filtros.dataFim, normalizarDataIso(periodo.dataFim));
+
+    contarOcorrenciasGrade(inicio, fim, grade.diaSemana).forEach((dataOcorrencia) => {
+      if (excecoesGerais.has(`${periodo.id}|${dataOcorrencia}`)) return;
+      if (excecoesEspecificas.has(`${grade.id}|${dataOcorrencia}`)) return;
+      datasPrevistas.add(dataOcorrencia);
+    });
+  });
+
+  const datasOrdenadas = [...datasPrevistas].sort();
+  return {
+    disponivel: datasOrdenadas.length > 0,
+    motivo: datasOrdenadas.length ? null : 'Não há encontros previstos válidos no intervalo selecionado.',
+    datasPrevistas: datasOrdenadas,
+    periodos,
+    escopo: filtros.idAtividade ? 'ATIVIDADE' : 'CURSO',
+    idCurso: Number(idCursoAlvo),
+    idAtividade: filtros.idAtividade || null,
+    atividade: atividade?.nome || null
+  };
+}
+
+export const frequenciaController = {
+  getContext: async (req, res) => {
+    try {
+      const supervisor = req.user.role === 'SUPERVISOR';
+      
+      // Obter cursos de acordo com o papel do usuário
+      const [cursos] = await pool.query(
+        supervisor 
+          ? 'SELECT id, nome AS nome, ativo FROM cursos WHERE ativo = TRUE ORDER BY nome' 
+          : 'SELECT id, nome AS nome, ativo FROM cursos WHERE ativo = TRUE AND id = ? ORDER BY nome',
+        supervisor ? [] : [req.user.idCurso]
+      );
+      
+      // Obter professores ativos da tabela usuarios
+      const [professores] = await pool.query(
+        supervisor
+          ? 'SELECT id, nome, id_curso AS idCurso FROM usuarios WHERE papel = ? AND ativo = TRUE AND oculto = FALSE ORDER BY nome'
+          : 'SELECT id, nome, id_curso AS idCurso FROM usuarios WHERE papel = ? AND id_curso = ? AND ativo = TRUE AND oculto = FALSE ORDER BY nome',
+        supervisor ? ['PROFESSOR'] : ['PROFESSOR', req.user.idCurso]
+      );
+      
+      res.json({ 
+        usuario: { 
+          id: req.user.id, 
+          nome: req.user.name, 
+          papel: req.user.role, 
+          idCurso: req.user.idCurso 
+        }, 
+        supervisor, 
+        cursos, 
+        professores 
+      });
+    } catch (error) {
+      console.error('Erro ao carregar contexto da frequência:', error);
+      res.status(500).json({ message: 'Erro ao carregar contexto da frequência' });
+    }
+  },
+
+  getHistory: async (req, res) => {
+    try {
+      const idPaciente = req.query.id_paciente ? parsePositiveInt(req.query.id_paciente) : null;
+      const { limit, offset } = parsePagination(req.query.limit, req.query.offset, { limit: 50, maxLimit: 200 });
+      if (req.query.id_paciente && !idPaciente) return res.status(400).json({ message: 'ID do paciente inválido' });
+      
+      const registros = await consultaFrequencias({
+        idPaciente, 
+        dataInicio: req.query.data_inicio || req.query.start_date, 
+        dataFim: req.query.data_fim || req.query.end_date,
+        idCurso: req.query.id_curso ? parsePositiveInt(req.query.id_curso) : null,
+        idAtividade: req.query.id_atividade ? parsePositiveInt(req.query.id_atividade) : null,
+        idProfissional: req.user.role === 'SUPERVISOR' && req.query.id_profissional ? parsePositiveInt(req.query.id_profissional) : null,
+        idCursoUsuario: req.user.role === 'PROFESSOR' ? req.user.idCurso : null
+      });
+      res.json({ data: registros.slice(offset, offset + limit), pagination: { total: registros.length, limit, offset } });
+    } catch (error) {
+      console.error('Erro ao listar histórico de frequência:', error);
+      res.status(500).json({ message: 'Erro ao listar histórico de frequência' });
+    }
+  },
+
+  getFrequencyReport: async (req, res) => {
+    try {
+      const dataInicio = normalizarDataIso(req.query.data_inicio || req.query.start_date);
+      const dataFim = normalizarDataIso(req.query.data_fim || req.query.end_date);
+      if (!dataInicio || !dataFim) return res.status(400).json({ message: 'Data inicial e final são obrigatórias' });
+      if (dataInicio > dataFim) return res.status(400).json({ message: 'Data inicial não pode ser maior que a data final' });
+
+      const idsPacientesRaw = req.query.ids_pacientes || req.query.patient_ids || '';
+      let idsPacientes = [];
+
+      if (idsPacientesRaw) {
+        const partes = String(idsPacientesRaw)
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+
+        const idsConvertidos = partes.map((item) => parsePositiveInt(item));
+        if (idsConvertidos.some((id) => !id)) {
+          return res.status(400).json({ message: 'Lista de pacientes inválida' });
+        }
+
+        idsPacientes = [...new Set(idsConvertidos)];
+        if (idsPacientes.length > 200) {
+          return res.status(400).json({ message: 'Selecione no máximo 200 pacientes por filtro específico' });
+        }
+      }
+
+      const idPaciente = idsPacientes.length === 0 && (req.query.id_paciente || req.query.patient_id)
+        ? parsePositiveInt(req.query.id_paciente || req.query.patient_id)
+        : null;
+      const idCurso = req.query.id_curso ? parsePositiveInt(req.query.id_curso) : null;
+      const idAtividade = req.query.id_atividade ? parsePositiveInt(req.query.id_atividade) : null;
+      const idProfissional = req.user.role === 'SUPERVISOR' && req.query.id_profissional
+        ? parsePositiveInt(req.query.id_profissional)
+        : null;
+      const idCursoUsuario = req.user.role === 'PROFESSOR' ? req.user.idCurso : null;
+
+      const filtrosBase = {
+        dataInicio,
+        dataFim,
+        idsPacientes,
+        idPaciente,
+        nomePaciente: idsPacientes.length === 0 ? (req.query.nome_paciente || req.query.patient_name) : null,
+        idCurso,
+        idAtividade,
+        idProfissional,
+        idCursoUsuario
+      };
+
+      const [registros, calendario] = await Promise.all([
+        consultaFrequencias(filtrosBase),
+        montarCalendarioFrequencia(filtrosBase)
+      ]);
+
+      const agrupado = new Map();
+      const garantirPaciente = (id, nome = '') => {
+        const chave = Number(id);
+        if (!agrupado.has(chave)) {
+          agrupado.set(chave, {
+            idPaciente: chave,
+            nomePaciente: nome || '',
+            totalParticipacoes: 0,
+            registros: [],
+            _datasPresenca: new Set()
+          });
+        } else if (nome && !agrupado.get(chave).nomePaciente) {
+          agrupado.get(chave).nomePaciente = nome;
+        }
+        return agrupado.get(chave);
+      };
+
+      registros.forEach((registro) => {
+        const item = garantirPaciente(registro.idPaciente, registro.paciente);
+        item.totalParticipacoes += 1;
+        item._datasPresenca.add(registro.data);
+        item.registros.push({
+          data: registro.data,
+          horario: registro.horario || '',
+          idCurso: registro.idCurso,
+          nomeCurso: registro.curso,
+          idAtividade: registro.idAtividade,
+          nomeAtividade: registro.atividade,
+          idProfissional: registro.idProfissional,
+          nomeProfissional: registro.profissional
+        });
+      });
+
+      const idsSolicitados = idsPacientes.length ? idsPacientes : (idPaciente ? [idPaciente] : []);
+      if (idsSolicitados.length) {
+        const marcadores = idsSolicitados.map(() => '?').join(', ');
+        const [pacientesSelecionados] = await pool.query(
+          `SELECT id, nome FROM pacientes WHERE id IN (${marcadores})`,
+          idsSolicitados
+        );
+        pacientesSelecionados.forEach((paciente) => garantirPaciente(paciente.id, paciente.nome));
+      }
+
+      const datasPrevistas = new Set(calendario.datasPrevistas || []);
+      const report = [...agrupado.values()]
+        .map((item) => {
+          const possuiParticipacaoNoFiltro = item.totalParticipacoes > 0;
+          const calculoFrequenciaDisponivel = calendario.disponivel && possuiParticipacaoNoFiltro;
+          const encontrosPrevistos = calculoFrequenciaDisponivel ? datasPrevistas.size : 0;
+          const encontrosComPresenca = calculoFrequenciaDisponivel
+            ? [...item._datasPresenca].filter((data) => datasPrevistas.has(data)).length
+            : 0;
+          const percentualFrequencia = encontrosPrevistos > 0
+            ? Number(((encontrosComPresenca / encontrosPrevistos) * 100).toFixed(1))
+            : null;
+
+          return {
+            idPaciente: item.idPaciente,
+            nomePaciente: item.nomePaciente,
+            diasComPresenca: item._datasPresenca.size,
+            totalParticipacoes: item.totalParticipacoes,
+            datasPresenca: [...item._datasPresenca].sort(),
+            registros: item.registros,
+            encontrosPrevistos,
+            encontrosComPresenca,
+            faltas: calculoFrequenciaDisponivel ? Math.max(0, encontrosPrevistos - encontrosComPresenca) : 0,
+            percentualFrequencia,
+            calculoFrequenciaDisponivel
+          };
+        })
+        .sort((a, b) => String(a.nomePaciente).localeCompare(String(b.nomePaciente), 'pt-BR'));
+
+      const periodDays = Math.floor((criarDataUtc(dataFim) - criarDataUtc(dataInicio)) / 86400000) + 1;
+      res.json({
+        period: {
+          start_date: dataInicio,
+          end_date: dataFim,
+          period_days: periodDays,
+          periodos_letivos: calendario.periodos || []
+        },
+        attendance_method: 'calendario_semestral_simplificado',
+        calendar: {
+          available: calendario.disponivel === true,
+          reason: calendario.motivo || null,
+          scope: calendario.escopo || null,
+          expected_dates: calendario.datasPrevistas || []
+        },
+        report
+      });
+    } catch (error) {
+      if (error?.code === 'ER_NO_SUCH_TABLE' || error?.code === 'ER_BAD_FIELD_ERROR') {
+        return res.status(503).json({
+          message: 'A estrutura simplificada do calendário ainda não foi instalada. Execute a migration de simplificação dos períodos letivos.'
+        });
+      }
+      console.error('Erro ao gerar relatório de frequência:', error);
+      res.status(500).json({ message: 'Erro ao gerar relatório de frequência' });
+    }
+  },
+
+  criarFrequencia: async (req, res) => {
+    try {
+      // Validação de ambiguidade: não permitir idPaciente e idsPacientes simultaneamente
+      const temIdSingular = req.body.idPaciente !== undefined && req.body.idPaciente !== null;
+      const temIdsPlural = req.body.idsPacientes !== undefined && req.body.idsPacientes !== null;
+
+      if (temIdSingular && temIdsPlural) {
+        return res.status(400).json({ 
+          message: 'Formato ambíguo: envie apenas idPaciente ou idsPacientes, não ambos simultaneamente' 
+        });
+      }
+
+      // Normalizar lista de IDs
+      let idsNormalizados = [];
+      if (temIdsPlural) {
+        if (!Array.isArray(req.body.idsPacientes)) {
+          return res.status(400).json({ message: 'idsPacientes deve ser uma lista de IDs' });
+        }
+        if (req.body.idsPacientes.length === 0) {
+          return res.status(400).json({ message: 'Selecione ao menos um paciente' });
+        }
+        for (const item of req.body.idsPacientes) {
+          const idValido = parsePositiveInt(item);
+          if (!idValido) {
+            return res.status(400).json({ message: 'Todos os IDs de pacientes devem ser números inteiros positivos válidos' });
+          }
+          idsNormalizados.push(idValido);
+        }
+      } else if (temIdSingular) {
+        const idValido = parsePositiveInt(req.body.idPaciente);
+        if (!idValido) {
+          return res.status(400).json({ message: 'ID do paciente inválido' });
+        }
+        idsNormalizados = [idValido];
+      } else {
+        return res.status(400).json({ message: 'Paciente, atividade e profissional são obrigatórios' });
+      }
+
+      // Deduplicar IDs dentro da requisição
+      const idsUnicos = [...new Set(idsNormalizados)];
+
+      // Limite máximo aprovado: até 50 pacientes por operação
+      if (idsUnicos.length > 50) {
+        return res.status(400).json({ message: 'É possível registrar frequência para até 50 pacientes por vez' });
+      }
+
+      const idAtividade = parsePositiveInt(req.body.idAtividade);
+      const idProfissional = parsePositiveInt(req.body.idProfissional);
+
+      if (!idAtividade || !idProfissional) {
+        return res.status(400).json({ message: 'Atividade e profissional são obrigatórios' });
+      }
+
+      // Iniciar transação atômica
+      const conn = await pool.getConnection();
+      try {
+        await conn.beginTransaction();
+
+        // 1. Validar Pacientes em consulta única no lote
+        const [pacientes] = await conn.query(
+          'SELECT id, nome, status, oculto FROM pacientes WHERE id IN (?)',
+          [idsUnicos]
+        );
+
+        if (pacientes.length !== idsUnicos.length) {
+          await conn.rollback();
+          return res.status(400).json({ message: 'Um ou mais pacientes informados não existem no sistema' });
+        }
+
+        const pacienteInvalido = pacientes.find(p => p.status !== 'ativo' || p.oculto);
+        if (pacienteInvalido) {
+          await conn.rollback();
+          return res.status(400).json({ message: `Paciente "${pacienteInvalido.nome}" está inativo ou arquivado` });
+        }
+
+        // 2. Validar Atividade
+        const [atividades] = await conn.query(
+          'SELECT aa.id, aa.nome AS atividade, aa.id_curso AS idCurso, c.nome AS curso FROM atividades_atendimento aa JOIN cursos c ON c.id = aa.id_curso WHERE aa.id = ? AND aa.ativo = TRUE', 
+          [idAtividade]
+        );
+
+        if (!atividades.length) {
+          await conn.rollback();
+          return res.status(400).json({ message: 'Atividade não encontrada ou inativa' });
+        }
+
+        const atividade = atividades[0];
+
+        // 3. Validar se Professor está restrito ao seu próprio curso (anti-IDOR)
+        if (req.user.role === 'PROFESSOR') {
+          if (Number(atividade.idCurso) !== Number(req.user.idCurso)) {
+            await conn.rollback();
+            return res.status(403).json({ message: 'A atividade não pertence ao curso do usuário' });
+          }
+        }
+
+        // 4. Validar Profissional
+        const [prof] = await conn.query(
+          'SELECT id, nome, id_curso AS idCurso FROM usuarios WHERE id = ? AND papel = ? AND ativo = TRUE AND oculto = FALSE',
+          [idProfissional, 'PROFESSOR']
+        );
+
+        if (!prof.length) {
+          await conn.rollback();
+          return res.status(400).json({ message: 'Profissional não encontrado ou inativo' });
+        }
+
+        const profissional = prof[0];
+
+        // Validar consistência de curso
+        if (Number(profissional.idCurso) !== Number(atividade.idCurso)) {
+          await conn.rollback();
+          if (req.user.role === 'PROFESSOR') {
+            return res.status(403).json({ message: 'O profissional selecionado não pertence ao curso da atividade' });
+          }
+          return res.status(400).json({ message: 'O profissional selecionado deve pertencer ao mesmo curso da atividade' });
+        }
+
+        if (req.user.role === 'PROFESSOR' && Number(profissional.idCurso) !== Number(req.user.idCurso)) {
+          await conn.rollback();
+          return res.status(403).json({ message: 'O profissional selecionado não pertence ao seu curso' });
+        }
+
+        // 5. Inserir em lote na tabela frequencia com timestamp compartilhado
+        const agora = new Date();
+        const observacaoTexto = req.body.observacao || req.body.observacoes || null;
+
+        const linhasFrequencia = idsUnicos.map(idPac => [
+          idPac,
+          idProfissional,
+          idAtividade,
+          observacaoTexto,
+          agora
+        ]);
+
+        const [resultadoInsert] = await conn.query(
+          'INSERT INTO frequencia (id_paciente, id_profissional, id_atividade, observacoes, registrado_em) VALUES ?',
+          [linhasFrequencia]
+        );
+
+        const totalRegistrados = idsUnicos.length;
+        const idsGerados = [];
+        for (let i = 0; i < totalRegistrados; i++) {
+          idsGerados.push(resultadoInsert.insertId + i);
+        }
+
+        // 6. Inserir movimentações transacionais para cada paciente
+        const mapaNomes = new Map(pacientes.map(p => [Number(p.id), p.nome]));
+        for (const idPac of idsUnicos) {
+          const nomePac = mapaNomes.get(idPac) || 'Paciente';
+          await registrarMovimentacao({
+            id_usuario: req.user.id,
+            id_paciente: idPac,
+            id_curso: atividade.idCurso,
+            id_atividade: idAtividade,
+            tipo: 'Frequência registrada',
+            descricao: `${nomePac} participou de ${atividade.atividade}`
+          }, conn);
+        }
+
+        await conn.commit();
+
+        // 7. Resposta estruturada
+        const resposta = {
+          sucesso: true,
+          totalRegistrados,
+          ids: idsGerados,
+          idAtividade,
+          idProfissional,
+          registradoEm: agora.toISOString(),
+          observacao: observacaoTexto
+        };
+
+        if (temIdSingular) {
+          resposta.id = idsGerados[0];
+          resposta.idPaciente = idsUnicos[0];
+          resposta.mensagem = 'Frequência registrada com sucesso';
+        } else {
+          resposta.mensagem = totalRegistrados === 1
+            ? 'Frequência registrada com sucesso'
+            : `${totalRegistrados} frequências registradas com sucesso`;
+          if (totalRegistrados === 1) {
+            resposta.id = idsGerados[0];
+          }
+        }
+
+        res.status(201).json(resposta);
+      } catch (transError) {
+        await conn.rollback();
+        throw transError;
+      } finally {
+        conn.release();
+      }
+    } catch (error) {
+      console.error('Erro ao registrar frequência:', error);
+      res.status(500).json({ message: 'Erro ao registrar frequência' });
+    }
+  }
+};
