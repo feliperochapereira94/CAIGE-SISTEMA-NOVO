@@ -636,7 +636,7 @@
     }
 
     .login-field > label {
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .login-input {
@@ -662,7 +662,7 @@
     .login-input input {
         min-height: 36px;
 
-        font-size: 12px;
+        font-size: 16px;
     }
 
     .login-password-toggle {
@@ -670,22 +670,22 @@
 
         padding: 3px 4px;
 
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
     .login-field-message {
-        font-size: 9px;
+        font-size: 11px;
     }
 
     .login-form-message {
         padding: 8px 9px;
 
-        font-size: 9.5px;
+        font-size: 11px;
         line-height: 1.35;
     }
 
     .login-remember {
-        font-size: 9px;
+        font-size: 11px;
     }
 
     .login-submit {
@@ -693,7 +693,7 @@
 
         padding: 8px 12px;
 
-        font-size: 10.5px;
+        font-size: 13px;
 
         border-radius: var(--radius-md);
     }

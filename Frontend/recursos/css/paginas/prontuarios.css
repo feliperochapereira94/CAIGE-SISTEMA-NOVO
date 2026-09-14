@@ -837,7 +837,7 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__body {
     .question-card .lista-entidades__meta,
     #questions-list .lista-entidades__meta {
         margin-top: 0;
-        font-size: 11px;
+        font-size: 12px;
         line-height: 1.35;
         color: var(--text-secondary);
         word-break: normal;
@@ -847,7 +847,7 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__body {
     .question-card .lista-entidades__descricao,
     #questions-list .lista-entidades__descricao {
         color: var(--text-muted);
-        font-size: 11px;
+        font-size: 12px;
         line-height: 1.35;
     }
 

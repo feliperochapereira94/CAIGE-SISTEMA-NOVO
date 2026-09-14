@@ -916,7 +916,7 @@
     }
 
     .card__note {
-        font-size: 9px;
+        font-size: 10.5px;
     }
 
 
@@ -932,7 +932,7 @@
         padding:
             3px 7px;
 
-        font-size: 8.5px;
+        font-size: 10px;
 
         line-height: 1.1;
     }
@@ -1368,7 +1368,7 @@
     }
 
     .mobile-bottom-nav__label {
-        font-size: 10px;
+        font-size: 10.5px;
     }
 
     .mobile-bottom-nav__icon,
@@ -1405,8 +1405,8 @@
     }
 
     :root {
-        --fonte-titulo-pagina: 14px;
-        --fonte-subtitulo-pagina: 9.5px;
+        --fonte-titulo-pagina: 15px;
+        --fonte-subtitulo-pagina: 10px;
         --padding-cabecalho-pagina-y: 10px;
         --padding-cabecalho-pagina-x: 11px;
     }
@@ -1420,7 +1420,7 @@
     }
 
     .grid-2.grid-2--mobile-two .field label {
-        font-size: 10px;
+        font-size: 11px;
     }
 
     .mobile-bottom-nav,
@@ -1436,7 +1436,7 @@
     }
 
     .mobile-bottom-nav__label {
-        font-size: 9.5px;
+        font-size: 10.5px;
     }
 
     .mobile-bottom-nav__icon,
@@ -1563,7 +1563,7 @@
     .form-label {
         margin-bottom: 4px;
 
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .modal__form input:not([type="checkbox"]):not([type="radio"]),
@@ -1573,12 +1573,8 @@
         padding:
             7px 9px !important;
 
-        /*
-           A área administrativa usa escala visual compacta.
-           O browser desktop em viewport mobile não fica com
-           campos desproporcionais ao restante da interface.
-        */
-        font-size: 12.5px !important;
+        /* 16px evita zoom automático em campos no Safari/iOS. */
+        font-size: 16px !important;
 
         border-radius: var(--radius-md) !important;
     }
@@ -1589,7 +1585,7 @@
         padding:
             8px 9px !important;
 
-        font-size: 12px !important;
+        font-size: 16px !important;
 
         border-radius: var(--radius-md) !important;
     }
@@ -1599,7 +1595,7 @@
 
         gap: 6px;
 
-        font-size: 9px;
+        font-size: 11px;
     }
 
     .checkbox-field input[type="checkbox"] {
@@ -1631,7 +1627,7 @@
         padding:
             7px 10px;
 
-        font-size: 10px;
+        font-size: 12px;
 
         border-radius: var(--radius-md);
     }
@@ -1662,11 +1658,11 @@
     }
 
     .modal-list-item__title {
-        font-size: 9.5px;
+        font-size: 11.5px;
     }
 
     .modal-list-item__meta {
-        font-size: 8px;
+        font-size: 11px;
     }
 
     .modal-list-item .btn-small {
@@ -1677,7 +1673,7 @@
         padding:
             5px 8px;
 
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
 
@@ -1685,7 +1681,7 @@
     .page-size-control {
         gap: 5px;
 
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
     .page-size-control select {
@@ -1696,7 +1692,7 @@
         padding:
             4px 25px 4px 9px !important;
 
-        font-size: 10px !important;
+        font-size: 16px !important;
         font-weight: 600 !important;
         line-height: 1.2 !important;
     }
@@ -1734,7 +1730,7 @@
         padding:
             6px 8px;
 
-        font-size: 9px;
+        font-size: 11px;
     }
 
     .pagination-indicator {
@@ -1748,7 +1744,7 @@
     }
 
     .pagination-summary {
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
 
@@ -1761,7 +1757,7 @@
 
         padding: 5px;
         border-radius: var(--radius-lg);
-        font-size: 10px;
+        font-size: 11px;
     }
 
     .flatpickr-calendar .flatpickr-months {
@@ -1812,13 +1808,13 @@
 
     .flatpickr-calendar span.flatpickr-weekday {
         height: 24px;
-        font-size: 8.5px;
+        font-size: 10px;
     }
 
     .flatpickr-calendar .flatpickr-day {
         height: 30px;
         line-height: 30px;
-        font-size: 9.5px;
+        font-size: 11px;
     }
 
 

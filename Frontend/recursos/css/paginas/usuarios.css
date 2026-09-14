@@ -629,7 +629,7 @@
         min-height: 32px;
         justify-content: center;
         padding: 6px 5px;
-        font-size: 9px;
+        font-size: 11px;
         border-radius: var(--radius-md);
     }
 
@@ -664,7 +664,7 @@
 
     .admin-page .form-group label,
     .admin-page .modal__form-group label {
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .admin-page .form-group input,
@@ -684,7 +684,7 @@
     .admin-page .btn-create {
         min-height: 37px;
 
-        font-size: 10px;
+        font-size: 12px;
     }
 
     .admin-page .course-item {
@@ -743,7 +743,7 @@
     .admin-page .admin-tab-btn {
         padding: 6px 8px;
 
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
     .admin-page .card,
@@ -959,13 +959,13 @@
     .admin-page .course-name {
         padding-right: 4px;
 
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .admin-page .course-status {
         padding-right: 2px;
 
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
     .admin-page .admin-row-actions-toggle {
@@ -1240,7 +1240,7 @@
     .admin-page .form-group label,
     .admin-page .modal__form-group label,
     .admin-page .audit-range-row label {
-        font-size: 9.5px;
+        font-size: 12px;
     }
 
     .admin-page .form-group input,
@@ -1250,19 +1250,19 @@
     .admin-page .audit-range-row input {
         min-height: 36px;
         padding: 7px 9px;
-        font-size: 13px;
+        font-size: 16px;
         line-height: 1.2;
         border-radius: var(--radius-md);
     }
 
     .admin-page .form-group input::placeholder,
     .admin-page .audit-filter-row input::placeholder {
-        font-size: 12.5px;
+        font-size: 14px;
     }
 
     .admin-page .btn-create {
         min-height: 36px;
-        font-size: 10px;
+        font-size: 12px;
     }
 
     .admin-page .admin-section-toggle,
@@ -1335,7 +1335,7 @@
         border: none;
         border-radius: var(--radius-md);
 
-        font-size: 10px;
+        font-size: 11px;
         text-align: left;
     }
 
@@ -1345,7 +1345,7 @@
 
     .admin-page .audit-filter-label {
         margin-bottom: 6px;
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
     .admin-page .audit-filter-row {
@@ -1359,7 +1359,7 @@
 
     .admin-page .audit-filter-toggles label {
         gap: 5px;
-        font-size: 8.5px;
+        font-size: 11px;
         line-height: 1.2;
     }
 
@@ -1381,24 +1381,24 @@
     .admin-page .audit-filter-actions .btn-small,
     .admin-page .admin-audit-more__toggle {
         min-height: 33px;
-        font-size: 9px;
+        font-size: 11px;
     }
 
     .admin-page .audit-table {
-        font-size: 9.5px;
+        font-size: 11px;
         line-height: 1.35;
     }
 
     .admin-page .audit-type-tag,
     .admin-page .audit-role-tag {
-        font-size: 8px;
+        font-size: 10px;
     }
 }
 
 @media (max-width: 430px) {
     .admin-page .admin-tab-btn {
         padding: 7px 9px;
-        font-size: 10px;
+        font-size: 11px;
     }
 
     .admin-page .form-group input,
@@ -1406,7 +1406,7 @@
     .admin-page .audit-filter-row select,
     .admin-page .audit-filter-row input,
     .admin-page .audit-range-row input {
-        font-size: 12.5px !important;
+        font-size: 16px !important;
     }
 }
 
@@ -1522,7 +1522,7 @@
 
         box-shadow: none !important;
 
-        font-size: 10px !important;
+        font-size: 11px !important;
 
         font-weight: 600 !important;
     }
@@ -1632,7 +1632,7 @@
     }
 
     .admin-page .audit-card-header h3 {
-        font-size: 11.5px;
+        font-size: 13px;
 
         line-height: 1.2;
     }
@@ -1682,7 +1682,7 @@
     }
 
     .admin-page .audit-card-header h3 {
-        font-size: 11.5px;
+        font-size: 13px;
     }
 
     .admin-page #activities-list {
@@ -1751,6 +1751,11 @@
 @media (max-width: 767px) {
     .admin-page .user-primary-meta {
         padding-right: 3px;
+    }
+
+    .admin-page .user-email-text,
+    .admin-page .user-course-line {
+        font-size: 11px;
     }
 
     .admin-page .user-course-line {
@@ -1875,7 +1880,7 @@
     }
 
     .admin-page .admin-list-header h3 {
-        font-size: 11.5px;
+        font-size: 13px;
         line-height: 1.2;
     }
 
@@ -1889,6 +1894,10 @@
         min-width: 0;
 
         flex: 1 1 100%;
+    }
+
+    .admin-page #tab-panel-arquivados .admin-list-header .search-box__input {
+        font-size: 16px;
     }
 
     .admin-page .admin-list-header .page-size-control>span {

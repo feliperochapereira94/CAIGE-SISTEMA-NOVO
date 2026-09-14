@@ -586,11 +586,11 @@
     }
 
     .dashboard-events-title h3 {
-        font-size: 11px;
+        font-size: 13px;
     }
 
     .dashboard-events-link {
-        font-size: 8.5px;
+        font-size: 11px;
     }
 
     .dashboard-events-toggle {
@@ -653,7 +653,7 @@
 
     .dashboard-event-date {
         grid-area: data;
-        font-size: 10px;
+        font-size: 11px;
         line-height: 1.2;
         font-weight: 600;
         color: #64748b;
@@ -665,7 +665,7 @@
         min-width: 60px;
         max-width: 110px;
         padding: 3px 6px;
-        font-size: 9.5px;
+        font-size: 10.5px;
         line-height: 1.15;
         white-space: nowrap;
         box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
@@ -673,7 +673,7 @@
 
     .dashboard-event-description {
         grid-area: descricao;
-        font-size: 11.5px;
+        font-size: 12.5px;
         line-height: 1.35;
         font-weight: 500;
         color: #1f2937;
@@ -683,7 +683,7 @@
         grid-area: responsavel;
         padding-top: 4px;
         border-top: 1px solid #e8edf5;
-        font-size: 10px;
+        font-size: 11px;
         line-height: 1.2;
         color: #64748b;
         text-align: left;
@@ -727,11 +727,11 @@
     }
 
     .dashboard .dashboard-card .card__title {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .dashboard .dashboard-card .card__note {
-        font-size: 10px;
+        font-size: 10.5px;
     }
 
     .dashboard .dashboard-card .card__value {
@@ -739,11 +739,11 @@
     }
 
     .dashboard .dashboard-card .card__delta {
-        font-size: 9.5px;
+        font-size: 10px;
     }
 
     .dashboard-events-link {
-        font-size: 10px;
+        font-size: 11px;
     }
 }
 
