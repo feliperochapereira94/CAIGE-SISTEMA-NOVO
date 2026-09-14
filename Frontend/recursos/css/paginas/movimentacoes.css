@@ -70,11 +70,11 @@
 .activities-page .stat-card h3 {
     margin: 0;
 
-    font-size: 22px;
+    font-size: var(--fonte-indicador);
 
     line-height: 1;
 
-    font-weight: 800;
+    font-weight: 700;
 
     color: var(--blue-600);
 }
@@ -83,7 +83,7 @@
 .activities-page .stat-card p {
     margin: 3px 0 0;
 
-    font-size: 10px;
+    font-size: var(--fonte-meta);
 
     line-height: 1.2;
 
@@ -144,7 +144,7 @@
 .activities-page .filter-group label {
     margin: 0;
 
-    font-size: 10px;
+    font-size: var(--fonte-label);
 
     line-height: 1.15;
 
@@ -171,7 +171,7 @@
     padding:
         7px 10px;
 
-    font-size: 12px;
+    font-size: var(--fonte-campo);
 
     line-height: 1.2;
 
@@ -207,7 +207,7 @@
     padding:
         7px 12px;
 
-    font-size: 11px;
+    font-size: var(--fonte-botao);
 
     border-radius: var(--radius-md);
 
@@ -362,7 +362,7 @@
 .activities-page .empty-state--movements p {
     margin: 0;
 
-    font-size: 13px;
+    font-size: var(--fonte-corpo);
 
     line-height: 1.45;
 
@@ -495,7 +495,7 @@
         white-space: nowrap;
         overflow-wrap: normal;
         word-break: normal;
-        font-size: 10.5px;
+        font-size: var(--fonte-grid-cabecalho);
     }
 
     .activities-page .activity-cell--date {
@@ -848,7 +848,7 @@
        ===================================================== */
 
     .activities-page .activities-row .activity-type {
-        font-size: 10.5px;
+        font-size: var(--fonte-badge);
 
         line-height: 1.15;
 
@@ -915,7 +915,7 @@
 
 
     .activities-page .empty-state--movements p {
-        font-size: 12px;
+        font-size: var(--fonte-corpo);
     }
 
 

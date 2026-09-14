@@ -297,8 +297,24 @@
     }
 
     :root {
-        --fonte-titulo-pagina: 18px;
+        --fonte-titulo-pagina: 17px;
         --fonte-subtitulo-pagina: 12px;
+        --fonte-titulo-secao: 15px;
+        --fonte-subtitulo-secao: 12px;
+        --fonte-titulo-card: 14px;
+        --fonte-corpo: 13px;
+        --fonte-label: 12px;
+        --fonte-botao: 12.5px;
+        --fonte-campo: 14px;
+        --fonte-texto-auxiliar: 11.5px;
+        --fonte-meta: 11px;
+        --fonte-badge: 10.5px;
+        --fonte-tab: 11.5px;
+        --fonte-navegacao: 12px;
+        --fonte-breadcrumb: 9.5px;
+        --fonte-indicador: 22px;
+        --fonte-grid-cabecalho: 11.5px;
+        --fonte-grid-corpo: 12.5px;
         --padding-cabecalho-pagina-x: 16px;
     }
 
@@ -312,7 +328,7 @@
 
         color: var(--gray-500);
 
-        font-size: 8px;
+        font-size: var(--fonte-breadcrumb);
     }
 
 
@@ -494,7 +510,7 @@
 
     .mobile-bottom-nav__label {
         max-width: 100%;
-        font-size: 10.5px;
+        font-size: var(--fonte-navegacao);
         line-height: 1.1;
         font-weight: 600;
         letter-spacing: -0.01em;
@@ -674,7 +690,23 @@
 
     :root {
         --fonte-titulo-pagina: 16px;
-        --fonte-subtitulo-pagina: 10.5px;
+        --fonte-subtitulo-pagina: 11px;
+        --fonte-titulo-secao: 15px;
+        --fonte-subtitulo-secao: 11px;
+        --fonte-titulo-card: 13px;
+        --fonte-corpo: 13px;
+        --fonte-label: 12px;
+        --fonte-botao: 13px;
+        --fonte-campo: 16px;
+        --fonte-texto-auxiliar: 11px;
+        --fonte-meta: 11px;
+        --fonte-badge: 10.5px;
+        --fonte-tab: 11px;
+        --fonte-navegacao: 10.5px;
+        --fonte-breadcrumb: 10px;
+        --fonte-indicador: 22px;
+        --fonte-grid-cabecalho: 11px;
+        --fonte-grid-corpo: 12px;
         --altura-cabecalho-pagina: 76px;
         --padding-cabecalho-pagina-y: 10px;
         --padding-cabecalho-pagina-x: 4px;
@@ -832,7 +864,7 @@
     .panel__header h3 {
         margin-bottom: 8px;
 
-        font-size: 15px;
+        font-size: var(--fonte-titulo-secao);
     }
 
 
@@ -897,15 +929,15 @@
     }
 
     .card__value {
-        font-size: 22px;
+        font-size: var(--fonte-indicador);
     }
 
     .card__title {
-        font-size: 11px;
+        font-size: var(--fonte-corpo);
     }
 
     .card__note {
-        font-size: 10.5px;
+        font-size: var(--fonte-meta);
     }
 
 
@@ -921,7 +953,7 @@
         padding:
             3px 7px;
 
-        font-size: 10px;
+        font-size: var(--fonte-badge);
 
         line-height: 1.1;
     }
@@ -946,7 +978,7 @@
         /*
            16px evita o zoom automático do Safari/iOS.
         */
-        font-size: 16px;
+        font-size: var(--fonte-campo);
 
         border-radius: var(--radius-lg);
     }
@@ -966,7 +998,7 @@
     .modal__form-group label,
     .filter-group label,
     .field label {
-        font-size: 11px;
+        font-size: var(--fonte-label);
     }
 
 
@@ -989,7 +1021,7 @@
 
         border-radius: var(--radius-lg);
 
-        font-size: 12px;
+        font-size: var(--fonte-botao);
     }
 
 
@@ -1056,7 +1088,7 @@
     }
 
     .modal__title {
-        font-size: 16px;
+        font-size: var(--fonte-titulo-secao);
     }
 
     .modal__body {
@@ -1104,7 +1136,7 @@
 
         border-radius: var(--radius-md);
 
-        font-size: 10.5px;
+        font-size: var(--fonte-tab);
     }
 
 
@@ -1245,7 +1277,7 @@
     }
 
     .mobile-bottom-nav__label {
-        font-size: 10.5px;
+        font-size: var(--fonte-navegacao);
         line-height: 1.1;
         font-weight: 600;
 
@@ -1312,8 +1344,6 @@
     }
 
     :root {
-        --fonte-titulo-pagina: 15px;
-        --fonte-subtitulo-pagina: 10px;
         --padding-cabecalho-pagina-y: 11px;
         --padding-cabecalho-pagina-x: 12px;
     }
@@ -1331,7 +1361,7 @@
     }
 
     .mobile-bottom-nav__label {
-        font-size: 10.5px;
+        font-size: var(--fonte-navegacao);
     }
 
     .mobile-bottom-nav__icon,
@@ -1368,8 +1398,6 @@
     }
 
     :root {
-        --fonte-titulo-pagina: 15px;
-        --fonte-subtitulo-pagina: 10px;
         --padding-cabecalho-pagina-y: 10px;
         --padding-cabecalho-pagina-x: 11px;
     }
@@ -1382,17 +1410,13 @@
         gap: 7px;
     }
 
-    .grid-2.grid-2--mobile-two .field label {
-        font-size: 11px;
-    }
-
     .mobile-bottom-nav,
     body.caige-has-mobile-bottom-nav .mobile-bottom-nav {
         gap: 2px;
     }
 
     .mobile-bottom-nav__label {
-        font-size: 10.5px;
+        font-size: var(--fonte-navegacao);
     }
 
     .mobile-bottom-nav__icon,
@@ -1462,7 +1486,7 @@
     }
 
     .modal__title {
-        font-size: 14px;
+        font-size: var(--fonte-titulo-secao);
 
         line-height: 1.2;
     }
@@ -1489,7 +1513,7 @@
     .form-label {
         margin-bottom: 4px;
 
-        font-size: 12px;
+        font-size: var(--fonte-label);
     }
 
     .modal__form input:not([type="checkbox"]):not([type="radio"]),
@@ -1500,7 +1524,7 @@
             7px 9px !important;
 
         /* 16px evita zoom automático em campos no Safari/iOS. */
-        font-size: 16px !important;
+        font-size: var(--fonte-campo) !important;
 
         border-radius: var(--radius-md) !important;
     }
@@ -1511,7 +1535,7 @@
         padding:
             8px 9px !important;
 
-        font-size: 16px !important;
+        font-size: var(--fonte-campo) !important;
 
         border-radius: var(--radius-md) !important;
     }
@@ -1521,7 +1545,7 @@
 
         gap: 6px;
 
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .checkbox-field input[type="checkbox"] {
@@ -1553,7 +1577,7 @@
         padding:
             7px 10px;
 
-        font-size: 12px;
+        font-size: var(--fonte-botao);
 
         border-radius: var(--radius-md);
     }
@@ -1567,7 +1591,7 @@
     .modal-section__title {
         margin-bottom: 7px;
 
-        font-size: 12px;
+        font-size: var(--fonte-titulo-card);
     }
 
     .modal-list {
@@ -1588,7 +1612,7 @@
     }
 
     .modal-list-item__meta {
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .modal-list-item .btn-small {
@@ -1607,7 +1631,7 @@
     .page-size-control {
         gap: 5px;
 
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .page-size-control select {
@@ -1656,7 +1680,7 @@
         padding:
             6px 8px;
 
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .pagination-indicator {
@@ -1670,7 +1694,7 @@
     }
 
     .pagination-summary {
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
 
@@ -1683,7 +1707,7 @@
 
         padding: 5px;
         border-radius: var(--radius-lg);
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .flatpickr-calendar .flatpickr-months {
@@ -1711,7 +1735,7 @@
         max-width: 94px;
         height: 28px;
         padding: 0 17px 0 3px;
-        font-size: 11px;
+        font-size: var(--fonte-meta);
         line-height: 28px;
     }
 
@@ -1724,7 +1748,7 @@
         height: 28px;
         min-height: 28px;
         padding: 0 14px 0 2px;
-        font-size: 11px;
+        font-size: var(--fonte-meta);
         line-height: 28px;
     }
 
@@ -1734,13 +1758,13 @@
 
     .flatpickr-calendar span.flatpickr-weekday {
         height: 24px;
-        font-size: 10px;
+        font-size: var(--fonte-badge);
     }
 
     .flatpickr-calendar .flatpickr-day {
         height: 30px;
         line-height: 30px;
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
 

@@ -197,7 +197,7 @@
 
     text-align: center;
 
-    font-size: 10px;
+    font-size: var(--fonte-meta);
 }
 
 
@@ -1388,7 +1388,7 @@ body[data-page-title="Perfil do Paciente"] .profile-section--desktop .patient-co
 
     border-radius: var(--radius-full);
 
-    font-size: 11px;
+    font-size: var(--fonte-badge);
     font-weight: 700;
 }
 
@@ -1548,7 +1548,7 @@ body[data-page-title="Perfil do Paciente"] .profile-section--desktop .patient-co
 
 .clinical-summary__list li::marker {
     color: var(--gray-900);
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .clinical-summary__list li+li {
@@ -1640,7 +1640,7 @@ body[data-page-title="Perfil do Paciente"] .profile-section--desktop .patient-co
 
     color: var(--blue-700);
 
-    font-size: 11px;
+    font-size: var(--fonte-badge);
     font-weight: 700;
 }
 

@@ -272,7 +272,7 @@
 
     color: var(--blue-600);
 
-    font-size: 22px;
+    font-size: var(--fonte-indicador);
     line-height: 1;
     font-weight: 700;
 }
@@ -282,7 +282,7 @@
 
     color: var(--gray-500);
 
-    font-size: 12px;
+    font-size: var(--fonte-meta);
     line-height: 1.2;
 }
 
@@ -293,7 +293,7 @@
 
     border-radius: var(--radius-full);
 
-    font-size: 12px;
+    font-size: var(--fonte-badge);
     font-weight: 600;
 
     text-align: center;
@@ -688,7 +688,7 @@
     background: var(--blue-50);
     border: 1px solid var(--blue-200);
     border-radius: var(--radius-sm);
-    font: 600 11px / 1.2 var(--font-family);
+    font: 600 var(--fonte-meta) / 1.2 var(--font-family);
     white-space: nowrap;
     cursor: pointer;
     transition:
@@ -808,7 +808,7 @@
 .frequencia-page .report-admin-meta {
     color: var(--gray-500);
 
-    font-size: 13px;
+    font-size: var(--fonte-corpo);
 }
 
 .frequencia-page .report-admin-group {
@@ -1104,7 +1104,7 @@
     .frequencia-page .form-group label {
         color: var(--gray-500);
 
-        font-size: 12px;
+        font-size: var(--fonte-label);
     }
 
     .frequencia-page .report-content,
@@ -1114,7 +1114,7 @@
 
     .frequencia-page .report-header h3,
     .frequencia-page .attendance-card__header h3 {
-        font-size: 16px;
+        font-size: var(--fonte-titulo-secao);
         letter-spacing: -0.01em;
     }
 
@@ -1134,14 +1134,14 @@
     }
 
     .frequencia-page .stat-card-value {
-        font-size: 24px;
+        font-size: var(--fonte-indicador);
     }
 
     .frequencia-page .stat-card-label,
     .frequencia-page .report-admin-meta {
         color: var(--gray-500);
 
-        font-size: 12px;
+        font-size: var(--fonte-meta);
     }
 }
 

@@ -133,31 +133,18 @@ O menu do avatar concentra as ações de perfil e sessão:
 **Acesso Administrativo no Mobile (Mobile 1)**:
 Como a barra inferior móvel (Bottom Navigation) comporta estritamente os 5 itens canônicos operacionais para preservar a ergonomia e legibilidade sem esmagamento, o acesso do perfil `SUPERVISOR` ao "Painel de Gerenciamento" é disponibilizado no topo do menu do avatar com ícone minimalista de escudo. Usuários do perfil `PROFESSOR` não possuem este link.
 
-### Navegação Inferior Mobile (Bottom Navigation — Mobile 1 e Mobile 1.1)
+### Navegação Inferior Mobile (Bottom Navigation)
 
-A barra inferior móvel (`.mobile-bottom-nav`) é gerada centralmente pelo `shell-global.js` e estilizada em `responsive.css`:
+A barra inferior (`.mobile-bottom-nav`) é gerada centralmente por `shell-global.js` e estilizada em `responsive.css`.
 
-- **Dois Estados Adaptativos (Mobile 1.1)**:
-  - **Expandido**: Altura de 56px, largura máxima de 480px, 5 ícones com rótulos visíveis e safe-area (`bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)`).
-  - **Compacto (`.mobile-bottom-nav--compact`)**: Modo pílula discreto durante leitura/scroll contínuo: largura máxima ~268px, altura de 48px, `border-radius: var(--radius-full)`, rótulos ocultados visualmente mas 100% preservados via `aria-label`, 5 destinos ativos com alvos de toque confortáveis (>= 44x44px).
-- **Detecção de Scroll Global com Histerese**:
-  - Centralizada em `shell-global.js` via listener passivo e `requestAnimationFrame`.
-  - Descida: 50px contínuos -> ativa estado compacto.
-  - Subida: 30px contínuos -> retorna ao estado expandido.
-  - Zona do Topo (`scrollY <= 70px`) -> força estado expandido incondicionalmente.
-  - Inversão de direção zera o acumulador, eliminando qualquer jitter/piscamento.
-- **Congelamento em Formulários (Form Freeze)**:
-  - Ao focar (`focusin`) qualquer campo editável (`input, textarea, select, [contenteditable]`), a detecção é suspensa temporariamente para evitar oscilações causadas pelo teclado virtual. É retomada 200ms após `focusout`.
-- **Rótulos Mobile**:
-  - O item "Movimentações" utiliza no mobile o `tituloMobile`: **"Movimentos"**, eliminando o truncamento em telas de 360px–390px, mantendo o desktop estritamente como "Movimentações".
-- **Superfície Translúcida Discreta e Tokens Semânticos**:
-  - Utiliza `--surface-translucent` (`rgba(255, 255, 255, 0.93)`) e `--border-translucent` (`rgba(228, 235, 245, 0.85)`).
-  - Com suporte a `backdrop-filter`, aplica desfoque sutil (`blur(8px)`). Sem suporte, degrada perfeitamente para `--surface` sólido via `@supports`.
-- **Ocultação Visual da Barra de Rolagem Mobile**:
-  - `html, body` com `scrollbar-width: none; ::-webkit-scrollbar { display: none; }` isolado sob `max-width: 767px`. A rolagem permanece 100% funcional.
-- **Compensação Inferior Estável (Zero Layout Shift)**:
-  - O padding inferior do `body.caige-has-mobile-bottom-nav` é fixado na altura expandida (`calc(env(safe-area-inset-bottom, 0px) + 84px)`), impedindo saltos de layout durante alternância entre estados.
-- **Ocultação em Tablet e Desktop**: Em resoluções `>= 768px`, a barra é estritamente ocultada com `display: none !important`.
+- **Mobile até 767px**: fica fixa em `bottom: 0`, ocupa a largura disponível e usa superfície branca sólida com borda/sombra superior. Não usar transparência, `backdrop-filter`, retração por scroll ou offsets artificiais.
+- **Safe area**: `env(safe-area-inset-bottom, 0px)` entra na altura/padding interno da barra, preservando iPhone com indicador Home sem deslocar a navegação para cima.
+- **Compensação do conteúdo**: `.content`, `.activities-content` e `.app-content` reservam espaço inferior equivalente à barra + safe area, para o último card/registro nunca ficar escondido atrás da navegação.
+- **Compatibilidade**: a regra é baseada em viewport e CSS padrão, sem detecção de Safari/iPhone. Deve funcionar em Safari/Chrome no iOS, Chrome/Samsung Internet/Edge/Firefox no Android e navegadores equivalentes.
+- **Tablet/iPad em retrato**: entre 768px e 1024px, o layout em retrato pode reutilizar a navegação inferior canônica; em tablet horizontal permanece a navegação lateral compacta.
+- **Desktop**: em `min-width: 1025px`, a navegação inferior permanece oculta.
+- **Rótulos**: o item "Movimentações" usa `tituloMobile: "Movimentos"` para evitar truncamento em telas estreitas.
+- **Sem comportamento retrátil**: não reintroduzir estado compacto, animação de esconder/mostrar ou lógica de scroll.
 
 ### Guias de Workspace e Subnavegação Segmentada (Mobile 1)
 
@@ -170,8 +157,8 @@ A barra inferior móvel (`.mobile-bottom-nav`) é gerada centralmente pelo `shel
 
 ### Escala Tipográfica Mobile e Indicadores
 
-- Nenhuma tela mobile deve conter fontes microscópicas abaixo de 9.5px–10px. Tamanhos antigos de 6px a 7.8px foram abolidos.
-- No Dashboard, sob `max-width: 767px`, os cards de indicadores organizam-se em 1 coluna compacta horizontal (`grid-template-columns: 1fr`), contendo ícone à esquerda, título (13px)/nota (11.5px) ao centro e valor (22px)/delta à direita, mantendo o desktop estritamente em 3 colunas (`repeat(3, minmax(0, 1fr))`).
+- Textos funcionais da interface mobile não devem ficar abaixo de 10.5px. Metadados, badges e navegação usam os tokens oficiais; tamanhos menores ficam restritos a documentos/rodapés técnicos quando necessários.
+- No Dashboard, títulos, notas, valores e deltas devem consumir os tokens tipográficos globais; o layout pode mudar entre desktop, tablet e mobile sem criar uma escala tipográfica paralela.
 
 ### Preparação para Temas (Claro / Escuro / Sistema)
 
@@ -198,66 +185,120 @@ Checklist oficial:
 
 ## 2. Fonte oficial
 
-Fonte principal:
+Fonte principal da interface:
 
 ```css
 --font-family:
+    "IBM Plex Sans",
+    "Segoe UI",
     Arial,
     Helvetica,
     sans-serif;
 ```
 
-A tipografia oficial do sistema é Arial/Helvetica, definida globalmente por `base.css`, para manter leitura institucional e menos arredondada em desktop, tablet e mobile.
+A tipografia oficial do CAIGE é **IBM Plex Sans**, escolhida por ter desenho técnico, institucional e pouco arredondado, adequado a um sistema universitário/assistencial. A família é carregada uma única vez por `base.css`; nenhuma página deve carregar fonte própria.
+
+O fallback `Segoe UI, Arial, Helvetica, sans-serif` existe apenas para indisponibilidade de rede ou falha no carregamento da fonte principal. Em condições normais, desktop, tablet e mobile utilizam IBM Plex Sans.
 
 ### Regra
 
-Não carregar Google Fonts diretamente em HTML.
-
-Não declarar outra `font-family` em CSS de página, salvo necessidade técnica documentada. A exceção tipográfica do desktop deve permanecer centralizada em `base.css`.
+- Não carregar Google Fonts diretamente em HTML.
+- Não declarar outra `font-family` em CSS de página.
+- Não usar `system-ui` como fonte principal, pois isso faria a família variar entre Windows, Android e iOS.
+- Pesos oficiais da interface: `400`, `500`, `600` e `700`.
+- Fontes de documentos gerados diretamente pelo jsPDF constituem exceção técnica: o gerador atual utiliza Helvetica nativa do PDF para evitar embutir arquivos de fonte no documento.
 
 ---
 
 ## 3. Escala tipográfica oficial
 
-Tokens atuais em `base.css`:
+A escala tipográfica possui **uma única fonte de verdade**. `base.css` define a escala de desktop e `responsive.css` altera somente os tokens necessários para tablet e mobile.
+
+### Desktop - 1025px ou mais
 
 ```css
 --fonte-titulo-pagina: 18px;
 --fonte-subtitulo-pagina: 13px;
-
 --fonte-titulo-secao: 16px;
 --fonte-subtitulo-secao: 12px;
-
+--fonte-titulo-card: 14px;
+--fonte-corpo: 13px;
+--fonte-label: 12px;
+--fonte-botao: 13px;
+--fonte-campo: 13px;
+--fonte-texto-auxiliar: 12px;
+--fonte-meta: 11px;
+--fonte-badge: 11px;
+--fonte-tab: 12px;
+--fonte-navegacao: 13px;
+--fonte-breadcrumb: 10px;
+--fonte-indicador: 24px;
 --fonte-grid-cabecalho: 12px;
 --fonte-grid-corpo: 13px;
---fonte-grid-badge: 11px;
-
---peso-titulo-pagina: 700;
---peso-titulo-secao: 700;
---peso-grid-cabecalho: 800;
---peso-grid-badge: 800;
 ```
 
-Aliases semânticos globais já disponíveis em `base.css`:
+### Tablet / iPad - 768px a 1024px
 
 ```css
---fonte-corpo: var(--fonte-grid-corpo);
---fonte-label: var(--fonte-subtitulo-secao);
---fonte-botao: var(--fonte-grid-corpo);
---fonte-texto-auxiliar: var(--fonte-subtitulo-secao);
---fonte-navegacao: var(--fonte-subtitulo-pagina);
+--fonte-titulo-pagina: 17px;
+--fonte-subtitulo-pagina: 12px;
+--fonte-titulo-secao: 15px;
+--fonte-titulo-card: 14px;
+--fonte-corpo: 13px;
+--fonte-label: 12px;
+--fonte-botao: 12.5px;
+--fonte-campo: 14px;
+--fonte-texto-auxiliar: 11.5px;
+--fonte-meta: 11px;
+--fonte-badge: 10.5px;
+--fonte-tab: 11.5px;
+--fonte-navegacao: 12px;
+--fonte-indicador: 22px;
+--fonte-grid-cabecalho: 11.5px;
+--fonte-grid-corpo: 12.5px;
 ```
+
+### Mobile - até 767px
+
+```css
+--fonte-titulo-pagina: 16px;
+--fonte-subtitulo-pagina: 11px;
+--fonte-titulo-secao: 15px;
+--fonte-titulo-card: 13px;
+--fonte-corpo: 13px;
+--fonte-label: 12px;
+--fonte-botao: 13px;
+--fonte-campo: 16px;
+--fonte-texto-auxiliar: 11px;
+--fonte-meta: 11px;
+--fonte-badge: 10.5px;
+--fonte-tab: 11px;
+--fonte-navegacao: 10.5px;
+--fonte-indicador: 22px;
+--fonte-grid-cabecalho: 11px;
+--fonte-grid-corpo: 12px;
+```
+
+O tamanho de `16px` para campos no mobile é deliberado para legibilidade e para impedir o zoom automático de campos no Safari/iOS. Não significa mudança de família tipográfica.
+
+### Regras de consistência
+
+- A mesma função visual deve usar o mesmo token em todas as páginas.
+- Breakpoints de 430px e 360px podem alterar espaçamento e layout, mas **não devem reduzir novamente a escala tipográfica mobile**.
+- CSS de página não deve criar tamanho próprio para título de página, label, campo, botão, badge, aba, metadado ou indicador quando já existir token semântico.
+- Tamanhos específicos continuam permitidos para ícones, avatares, títulos de documentos e elementos cuja função visual seja realmente distinta.
+- Ao substituir tamanho antigo por token, remover a declaração obsoleta em vez de adicionar override permanente no fim do arquivo.
 
 ### Onde alterar
 
-Se o tamanho do cabeçalho de todos os grids precisar mudar:
+Mudanças globais de tipografia devem ser feitas em:
 
 ```text
-ALTERAR: Frontend/recursos/css/base.css
-TOKEN: --fonte-grid-cabecalho
+Desktop: Frontend/recursos/css/base.css
+Tablet/Mobile: Frontend/recursos/css/responsive.css
 ```
 
-Não alterar `dashboard.css`, `movimentacoes.css`, `pacientes.css` etc.
+Não corrigir divergência global alterando `dashboard.css`, `movimentacoes.css`, `pacientes.css`, `usuarios.css` etc. Esses arquivos devem apenas consumir os tokens oficiais.
 
 ---
 
@@ -833,36 +874,28 @@ Breakpoints globais devem ser definidos ali quando afetarem componentes comparti
 
 CSS de página pode ter breakpoint local somente quando a necessidade for realmente exclusiva daquela tela.
 
-### Bottom Navigation Adaptativa (Mobile <= 767px)
+### Bottom Navigation Canônica (Mobile <= 767px)
 
-A navegação inferior para dispositivos móveis é gerada pelo Shell Global (`renderizarBottomNav` em `shell-global.js`) e possui comportamento adaptativo ergonômico:
+A navegação inferior é gerada pelo Shell Global (`renderizarBottomNav` em `shell-global.js`) e possui comportamento estável, sem retração por rolagem:
 
-- **Estado Expandido (Padrão e Topo)**:
-  - Altura: 56px, largura `calc(100% - 24px)` (máx. 480px).
-  - Exibe os 5 ícones com rótulos tipográficos de 10.5px.
-  - Safe-area inferior preservada via padding no `body.caige-has-mobile-bottom-nav`.
-- **Estado Compacto (`.mobile-bottom-nav--compact`)**:
-  - Pílula flutuante centrada com 48px de altura e 268px de largura (`border-radius: var(--radius-full)`).
-  - Rótulos ocultos suavemente (`opacity: 0; max-height: 0`), mantendo acessibilidade via `aria-label`.
-- **Limiares de Histerese**:
-  - Descida contínua >= **80px** ativa estado compacto.
-  - Subida contínua >= **60px** ativa estado expandido.
-  - Zona de topo (`scrollY <= 70px`) força expansão imediata e incondicional.
-- **Proteção Temporal contra Oscilações (Cooldown)**:
-  - Trava temporal de **280ms** após qualquer troca de estado, impedindo o efeito ping-pong em correções curtas de dedo.
-- **Form Freeze**:
-  - Suspensão imediata de alternâncias de estado durante o foco em qualquer elemento editável (`input`, `textarea`, `select`, `[contenteditable]`), evitando interferências com o teclado virtual.
-- **Transição e Movimento**:
-  - Duração suave de **280ms** (`cubic-bezier(0.16, 1, 0.3, 1)`).
-  - Respeito a `@media (prefers-reduced-motion: reduce)` com `transition: none !important`.
-- **Superfície e Translucidez**:
-  - Superfície com `--surface-translucent: rgba(255, 255, 255, 0.93)` e borda `--border-translucent: rgba(228, 235, 245, 0.85)`.
-  - Desfoque com `backdrop-filter: blur(8px)` via `@supports`.
-- **Scrollbar Mobile (<= 767px)**:
-  - O scroll permanece 100% funcional em todas as superfícies (toque, mouse/touchpad, teclado).
-  - A representação visual da scrollbar é ocultada globalmente (`scrollbar-width: none` e `::-webkit-scrollbar { display: none; width: 0; height: 0; }`).
-  - O comportamento é centralizado em `responsive.css` (`html, body, .admin-list__body, .list-shell__body, .modal__body, .scroll-discreto`).
-  - NUNCA utilizar `overflow: hidden` apenas para esconder scrollbars.
+- posição fixa em `bottom: 0`;
+- largura de `100%`, sem pílula flutuante;
+- altura base de 64px somada à `safe-area` quando existente;
+- fundo `--surface` sólido, borda superior e sombra de separação;
+- cinco destinos operacionais com rótulos controlados por `--fonte-navegacao`;
+- `env(safe-area-inset-bottom, 0px)` aplicado internamente para iPhone e outros dispositivos com área segura;
+- conteúdo principal com compensação inferior suficiente para o último registro nunca ficar atrás da barra;
+- nenhuma detecção específica de Safari, iPhone, Chrome ou Android;
+- nenhuma lógica de estado compacto/expandido, histerese, cooldown ou esconder/mostrar por scroll.
+
+Em tablet/iPad retrato, a navegação inferior pode ser reutilizada no breakpoint específico; em tablet horizontal permanece a navegação lateral compacta. Em desktop (`>= 1025px`) a barra inferior é ocultada.
+
+### Scrollbar Mobile (<= 767px)
+
+- O scroll permanece 100% funcional em todas as superfícies (toque, mouse/touchpad e teclado).
+- A representação visual da scrollbar é ocultada globalmente (`scrollbar-width: none` e `::-webkit-scrollbar { display: none; width: 0; height: 0; }`).
+- O comportamento é centralizado em `responsive.css` (`html, body, .admin-list__body, .list-shell__body, .modal__body, .scroll-discreto`).
+- Nunca utilizar `overflow: hidden` apenas para esconder scrollbars.
 
 ---
 

@@ -233,8 +233,6 @@ body[data-page-title="Prontuário do Paciente"] .questionnaire-section__header {
 @media (max-width: 430px) {
 
     .content__header h2 {
-        font-size: 19px;
-
         letter-spacing: -0.01em;
     }
 
@@ -251,7 +249,7 @@ body[data-page-title="Prontuário do Paciente"] .questionnaire-section__header {
 
     .field label,
     .hint {
-        font-size: 12px;
+        font-size: var(--fonte-label);
 
         color: var(--gray-500);
     }
@@ -472,7 +470,7 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__header {
 body[data-page-title="Prontuário do Paciente"] .course-accordion__title {
     min-width: 0;
     font-size: var(--fonte-corpo);
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .prontuario-course-group__count,
@@ -826,7 +824,7 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__body {
 
     .question-card .lista-entidades__titulo,
     #questions-list .lista-entidades__titulo {
-        font-size: 13px;
+        font-size: var(--fonte-corpo);
         line-height: 1.35;
         font-weight: 700;
         color: var(--text-primary);
@@ -837,7 +835,7 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__body {
     .question-card .lista-entidades__meta,
     #questions-list .lista-entidades__meta {
         margin-top: 0;
-        font-size: 12px;
+        font-size: var(--fonte-meta);
         line-height: 1.35;
         color: var(--text-secondary);
         word-break: normal;
@@ -847,7 +845,7 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__body {
     .question-card .lista-entidades__descricao,
     #questions-list .lista-entidades__descricao {
         color: var(--text-muted);
-        font-size: 12px;
+        font-size: var(--fonte-corpo);
         line-height: 1.35;
     }
 

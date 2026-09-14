@@ -118,7 +118,7 @@
 
     color: var(--text-muted);
 
-    font-size: 12px;
+    font-size: var(--fonte-corpo);
     line-height: 1.45;
 }
 
@@ -139,7 +139,7 @@
 .login-field > label {
     color: var(--gray-700);
 
-    font-size: 10px;
+    font-size: var(--fonte-label);
     line-height: 1.2;
     font-weight: 700;
 }
@@ -205,7 +205,7 @@
     box-shadow: none;
 
     font-family: inherit;
-    font-size: 12px;
+    font-size: var(--fonte-campo);
     line-height: 1.2;
 
     outline: 0;
@@ -228,7 +228,7 @@
 
     color: var(--red-600, #dc2626);
 
-    font-size: 10px;
+    font-size: var(--fonte-meta);
     line-height: 1.35;
     font-weight: 600;
 }
@@ -266,7 +266,7 @@
     border: 1px solid var(--red-200, #fecaca);
     border-radius: var(--radius-md);
 
-    font-size: 10.5px;
+    font-size: var(--fonte-meta);
     line-height: 1.4;
     font-weight: 600;
 }
@@ -296,7 +296,7 @@
     border: 0;
 
     font-family: inherit;
-    font-size: 9px;
+    font-size: var(--fonte-meta);
     font-weight: 700;
 
     cursor: pointer;
@@ -338,7 +338,7 @@
         rgba(31, 96, 232, 0.18);
 
     font-family: inherit;
-    font-size: 11px;
+    font-size: var(--fonte-botao);
     line-height: 1.2;
     font-weight: 700;
 
@@ -427,7 +427,7 @@
 
     color: rgba(255, 255, 255, 0.86);
 
-    font-size: 9.5px;
+    font-size: var(--fonte-badge);
     line-height: 1.2;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -454,7 +454,7 @@
 
     color: rgba(255, 255, 255, 0.9);
 
-    font-size: 12.5px;
+    font-size: var(--fonte-corpo);
     line-height: 1.6;
 }
 
@@ -636,7 +636,7 @@
     }
 
     .login-field > label {
-        font-size: 12px;
+        font-size: var(--fonte-label);
     }
 
     .login-input {
@@ -662,7 +662,7 @@
     .login-input input {
         min-height: 36px;
 
-        font-size: 16px;
+        font-size: var(--fonte-campo);
     }
 
     .login-password-toggle {
@@ -670,22 +670,22 @@
 
         padding: 3px 4px;
 
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .login-field-message {
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .login-form-message {
         padding: 8px 9px;
 
-        font-size: 11px;
+        font-size: var(--fonte-meta);
         line-height: 1.35;
     }
 
     .login-remember {
-        font-size: 11px;
+        font-size: var(--fonte-meta);
     }
 
     .login-submit {
@@ -693,7 +693,7 @@
 
         padding: 8px 12px;
 
-        font-size: 13px;
+        font-size: var(--fonte-botao);
 
         border-radius: var(--radius-md);
     }

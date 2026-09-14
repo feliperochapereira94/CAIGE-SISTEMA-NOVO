@@ -116,7 +116,7 @@
     color: var(--text-secondary);
 
     font-size: var(--fonte-texto-auxiliar);
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .clinical-history-day__records {
@@ -281,7 +281,7 @@
 
     font-size: var(--fonte-corpo);
     line-height: 1.3;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .questionnaire-question__title::before {

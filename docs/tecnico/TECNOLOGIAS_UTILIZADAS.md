@@ -15,6 +15,9 @@ Este documento reúne as tecnologias, bibliotecas e ferramentas utilizadas na V1
 - Scripts utilitários e de negócio em `Frontend/recursos/js/`.
 
 ### Bibliotecas externas usadas no frontend
+#### IBM Plex Sans (Google Fonts)
+Fonte tipográfica oficial da interface, carregada de forma centralizada por `Frontend/recursos/css/base.css` nos pesos 400, 500, 600 e 700. O sistema mantém fallback para `Segoe UI`, Arial, Helvetica e sans-serif quando a fonte externa não estiver disponível.
+
 #### Flatpickr
 Usado para campos de data.
 - Arquivos/pontos de uso: páginas de cadastro/edição de pacientes;
@@ -81,7 +84,7 @@ Disponível em:
 ## 7. Resumo rápido
 | Camada | Tecnologias |
 |---|---|
-| Frontend | HTML5, CSS3, JavaScript Vanilla, Flatpickr, jsPDF, jsPDF AutoTable, ExcelJS, live-server |
+| Frontend | HTML5, CSS3, JavaScript Vanilla, IBM Plex Sans, Flatpickr, jsPDF, jsPDF AutoTable, ExcelJS, live-server |
 | Backend | Node.js, Express, dotenv, mysql2, jsonwebtoken, bcryptjs, swagger-ui-express, yaml |
 | Banco | MySQL |
 | API/Docs | OpenAPI 3, Swagger UI |

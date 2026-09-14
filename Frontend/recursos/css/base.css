@@ -19,6 +19,7 @@
    - regras mobile específicas.
    ========================================================= */
 
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 
 /* =========================================================
    1. VARIÁVEIS GLOBAIS
@@ -182,31 +183,41 @@
        ----------------------------------------------------- */
 
     --font-family:
+        "IBM Plex Sans",
+        "Segoe UI",
         Arial,
         Helvetica,
         sans-serif;
 
-    /* Escala tipográfica compartilhada */
+    /* Escala tipográfica canônica - desktop (>= 1025px)
+       Tablet e mobile sobrescrevem somente estes tokens em responsive.css. */
     --fonte-titulo-pagina: 18px;
     --fonte-subtitulo-pagina: 13px;
 
     --fonte-titulo-secao: 16px;
     --fonte-subtitulo-secao: 12px;
+    --fonte-titulo-card: 14px;
+
+    --fonte-corpo: 13px;
+    --fonte-label: 12px;
+    --fonte-botao: 13px;
+    --fonte-campo: 13px;
+    --fonte-texto-auxiliar: 12px;
+    --fonte-meta: 11px;
+    --fonte-badge: 11px;
+    --fonte-tab: 12px;
+    --fonte-navegacao: 13px;
+    --fonte-breadcrumb: 10px;
+    --fonte-indicador: 24px;
 
     --fonte-grid-cabecalho: 12px;
     --fonte-grid-corpo: 13px;
-    --fonte-grid-badge: 11px;
-
-    --fonte-corpo: var(--fonte-grid-corpo);
-    --fonte-label: var(--fonte-subtitulo-secao);
-    --fonte-botao: var(--fonte-grid-corpo);
-    --fonte-texto-auxiliar: var(--fonte-subtitulo-secao);
-    --fonte-navegacao: var(--fonte-subtitulo-pagina);
+    --fonte-grid-badge: var(--fonte-badge);
 
     --peso-titulo-pagina: 700;
     --peso-titulo-secao: 700;
-    --peso-grid-cabecalho: 800;
-    --peso-grid-badge: 800;
+    --peso-grid-cabecalho: 700;
+    --peso-grid-badge: 700;
 
     /* Identidade visual compartilhada de cabeçalhos destacados */
     --fundo-cabecalho-destaque:

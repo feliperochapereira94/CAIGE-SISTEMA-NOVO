@@ -45,7 +45,7 @@ Não criar, sem justificativa técnica:
 - fonte local de grid;
 - hover local de grid;
 - cor duplicada quando já existe token;
-- Google Fonts carregado em HTML;
+- Google Fonts carregado diretamente em HTML (a fonte oficial é centralizada em `base.css`);
 - bloco `<style>` dentro de HTML;
 - `style=""` para layout permanente;
 - `!important` como solução de conflito;
@@ -196,7 +196,9 @@ paginas/<pagina>.css
 
 Não carregar arquivos CSS legados removidos.
 
-Não carregar a fonte Inter individualmente no HTML.
+Não carregar fontes individualmente no HTML. A família oficial da interface é `IBM Plex Sans`, carregada exclusivamente por `base.css`, com fallback `Segoe UI, Arial, Helvetica, sans-serif`.
+
+Não declarar `font-family` própria em CSS de página. Tamanhos compartilhados devem consumir os tokens tipográficos de `base.css`/`responsive.css`; não criar escalas locais para desktop, tablet ou mobile.
 
 Não usar `<style>` embutido para construir a interface.
 
