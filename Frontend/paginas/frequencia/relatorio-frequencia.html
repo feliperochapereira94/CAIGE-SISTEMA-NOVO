@@ -315,6 +315,23 @@
       </main>
     </div>
 
+    <div class="modal" id="modal-registros-frequencia" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-registros-frequencia-titulo">
+      <div class="modal__content modal__content--medium report-records-modal">
+        <div class="modal__header">
+          <h2 class="modal__title" id="modal-registros-frequencia-titulo">Registros de frequência</h2>
+          <button class="modal__close" type="button" data-close-report-records-modal aria-label="Fechar">
+            <span class="icone icone--sm" data-icone="fechar" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="modal__body">
+          <div class="report-records-modal__list" id="modal-registros-frequencia-lista"></div>
+          <div class="modal__form-actions">
+            <button type="button" class="modal__btn modal__btn--secondary" data-close-report-records-modal>Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="../../recursos/js/notificacoes.js"></script>
     <script src="../../recursos/js/icones.js"></script>
     <script src="../../recursos/js/modal-confirmacao.js"></script>
@@ -1090,75 +1107,59 @@
         `;
       }
 
+      function encodeReportRecords(records = []) {
+        try {
+          return encodeURIComponent(JSON.stringify(records));
+        } catch (error) {
+          console.error('Erro ao preparar registros do relatório:', error);
+          return '';
+        }
+      }
+
       function renderSummaryAttendanceDetails(item, rowIndex) {
-        const records = Array.isArray(item.attendance_records)
-          ? item.attendance_records
-          : [];
+        const records = Array.isArray(item.attendance_records) ? item.attendance_records : [];
 
         if (records.length > 0) {
           const [firstRecord, ...extraRecords] = records;
-
-          if (extraRecords.length === 0) {
-            return renderAttendanceRecord(firstRecord);
-          }
-
-          const targetId = `frequency-records-extra-${rowIndex}`;
-          const extraLabel = `${extraRecords.length} ${extraRecords.length === 1 ? 'outro' : 'outros'}`;
-
+          const incompatibles = Number(item.incompatible_records || 0);
           return `
-            <div class="report-records-summary">
-              ${renderAttendanceRecord(firstRecord)}
-              <button
-                class="btn btn--secondary report-records-toggle"
-                type="button"
-                data-report-records-toggle
-                data-target="${targetId}"
-                data-count="${extraRecords.length}"
-                aria-expanded="false"
-                aria-controls="${targetId}"
-              >
-                <span data-report-records-toggle-label>+ ${extraLabel}</span>
-              </button>
-              <div class="report-records-extra" id="${targetId}" hidden>
-                ${extraRecords.map(renderAttendanceRecord).join('')}
+            <div class="report-records-summary report-records-summary--compact">
+              <div class="report-records-summary__top">
+                ${renderAttendanceRecord(firstRecord)}
+                ${extraRecords.length > 0 ? `
+                  <button
+                    class="report-records-modal-button"
+                    type="button"
+                    data-report-records-modal
+                    data-patient="${String(item.name || '').replace(/"/g, '&quot;')}"
+                    data-records="${encodeReportRecords(records)}"
+                  >+ ${extraRecords.length} ${extraRecords.length === 1 ? 'outro' : 'outros'}</button>
+                ` : ''}
               </div>
+
             </div>
           `;
         }
 
-        const dates = Array.isArray(item.attendance_dates)
-          ? item.attendance_dates.filter(Boolean)
-          : [];
-
-        if (dates.length === 0) {
-          return 'Nenhuma presença';
-        }
+        const dates = Array.isArray(item.attendance_dates) ? item.attendance_dates.filter(Boolean) : [];
+        if (dates.length === 0) return 'Nenhuma presença';
 
         const [firstDate, ...extraDates] = dates;
-
-        if (extraDates.length === 0) {
-          return `<div class="report-record"><strong>${formatDateToPtBr(firstDate)}</strong></div>`;
-        }
-
-        const targetId = `frequency-dates-extra-${rowIndex}`;
-        const extraLabel = `${extraDates.length} ${extraDates.length === 1 ? 'outro' : 'outros'}`;
+        const dateRecords = dates.map((date) => ({
+          date, time: '', course: '', activity: '', professional: '', calendarCompatible: true
+        }));
 
         return `
-          <div class="report-records-summary">
-            <div class="report-record"><strong>${formatDateToPtBr(firstDate)}</strong></div>
-            <button
-              class="btn btn--secondary report-records-toggle"
-              type="button"
-              data-report-records-toggle
-              data-target="${targetId}"
-              data-count="${extraDates.length}"
-              aria-expanded="false"
-              aria-controls="${targetId}"
-            >
-              <span data-report-records-toggle-label>+ ${extraLabel}</span>
-            </button>
-            <div class="report-records-extra" id="${targetId}" hidden>
-              ${extraDates.map((date) => `<div class="report-record"><strong>${formatDateToPtBr(date)}</strong></div>`).join('')}
+          <div class="report-records-summary report-records-summary--compact">
+            <div class="report-records-summary__top">
+              <div class="report-record"><strong>${formatDateToPtBr(firstDate)}</strong></div>
+              ${extraDates.length > 0 ? `
+                <button class="report-records-modal-button" type="button"
+                  data-report-records-modal
+                  data-patient="${String(item.name || '').replace(/"/g, '&quot;')}"
+                  data-records="${encodeReportRecords(dateRecords)}"
+                >+ ${extraDates.length} ${extraDates.length === 1 ? 'outro' : 'outros'}</button>
+              ` : ''}
             </div>
           </div>
         `;
@@ -1205,25 +1206,66 @@
         `;
       }
 
+      function closeReportRecordsModal() {
+        const modal = document.getElementById('modal-registros-frequencia');
+        if (!modal) return;
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+      }
+
+      function openReportRecordsModal(patientName, records = []) {
+        const modal = document.getElementById('modal-registros-frequencia');
+        const title = document.getElementById('modal-registros-frequencia-titulo');
+        const body = document.getElementById('modal-registros-frequencia-lista');
+        if (!modal || !body) return;
+
+        if (title) title.textContent = patientName ? `Registros — ${patientName}` : 'Registros de frequência';
+        body.innerHTML = records.map((record) => {
+          const prof = window.FormatadorTexto
+            ? window.FormatadorTexto.formatarNomePessoa(record.professional || '')
+            : (record.professional || '');
+          const meta = [record.course, record.activity, prof].filter(Boolean).join(' · ');
+          return `
+            <div class="report-record-modal-item${record.calendarCompatible === false ? ' is-incompatible' : ''}">
+              <div class="report-record-modal-item__header">
+                <strong>${formatDateToPtBr(record.date)}${record.time ? ` • ${record.time}` : ''}</strong>
+                ${record.calendarCompatible === false ? '<span class="report-record-modal-item__status">Fora do calendário</span>' : ''}
+              </div>
+              ${meta ? `<span class="report-record__meta">${meta}</span>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+        window.IconesCAIGE?.aplicar?.(modal);
+      }
+
       document.getElementById('report-list').addEventListener('click', (event) => {
-        const button = event.target.closest('[data-report-records-toggle]');
+        const button = event.target.closest('[data-report-records-modal]');
         if (!button) return;
-
-        const target = document.getElementById(button.dataset.target);
-        if (!target) return;
-
-        const willExpand = button.getAttribute('aria-expanded') !== 'true';
-        const count = Math.max(0, Number(button.dataset.count) || 0);
-        const label = button.querySelector('[data-report-records-toggle-label]');
-
-        target.hidden = !willExpand;
-        button.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
-
-        if (label) {
-          label.textContent = willExpand
-            ? 'Ocultar registros'
-            : `+ ${count} ${count === 1 ? 'outro' : 'outros'}`;
+        try {
+          openReportRecordsModal(
+            button.dataset.patient || '',
+            JSON.parse(decodeURIComponent(button.dataset.records || ''))
+          );
+        } catch (error) {
+          console.error('Erro ao abrir registros do relatório:', error);
+          notify.error('Não foi possível abrir os registros.');
         }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (event.target.closest('[data-close-report-records-modal]')) {
+          closeReportRecordsModal();
+          return;
+        }
+        const modal = document.getElementById('modal-registros-frequencia');
+        if (modal && event.target === modal) closeReportRecordsModal();
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeReportRecordsModal();
       });
 
       function renderAdministrativeReport(report, grouping) {
@@ -1343,7 +1385,9 @@
         }
 
         if (!filters.allPatientsSelected && filters.patientIds.length === 0) {
-          notify.error('Selecione um ou mais pacientes');
+          notify.warning
+            ? notify.warning('Selecione um ou mais pacientes para gerar o relatório de frequência.')
+            : notify.error('Selecione um ou mais pacientes para gerar o relatório de frequência.');
           return false;
         }
 
@@ -1364,7 +1408,39 @@
           const data = await response.json();
 
           if (!response.ok) {
-            notify.error(data.message || 'Erro ao gerar relatório');
+            const mensagem = data.message || 'Erro ao gerar relatório';
+
+            if (response.status === 409 && String(data.code || '').startsWith('CALENDARIO')) {
+              const statsGrid = document.getElementById('stats-grid');
+              const notaCalculo = document.getElementById('frequency-calculation-note');
+              const textoCalculo = document.getElementById('frequency-calculation-text');
+              const lista = document.getElementById('report-list');
+              const exportarPdf = document.getElementById('btn-export-pdf');
+
+              if (statsGrid) statsGrid.hidden = true;
+              if (exportarPdf) exportarPdf.hidden = true;
+              if (notaCalculo) {
+                notaCalculo.hidden = true;
+                notaCalculo.classList.remove('frequency-calculation-note--warning');
+              }
+              if (lista) {
+                lista.innerHTML = `
+                  <div class="empty-state">
+                    <span class="empty-state-icon icone" data-icone="informacao" aria-hidden="true"></span>
+                    <p class="calendar-warning-message"></p>
+                  </div>
+                `;
+                const avisoCalendario = lista.querySelector('.calendar-warning-message');
+                if (avisoCalendario) avisoCalendario.textContent = mensagem;
+                window.IconesCAIGE?.aplicar?.(lista);
+              }
+
+              if (!restoring) {
+                notify.warning ? notify.warning(mensagem) : notify.error(mensagem);
+              }
+            } else {
+              notify.error(mensagem);
+            }
             return false;
           }
 
@@ -1426,8 +1502,10 @@
             time: registro.horario,
             course: registro.nomeCurso,
             activity: registro.nomeAtividade,
-            professional: registro.nomeProfissional
-          }))
+            professional: registro.nomeProfissional,
+            calendarCompatible: registro.compativelCalendario === true
+          })),
+          incompatible_records: Number(item.registrosIncompativeis || 0)
         }));
         const reportList = document.getElementById('report-list');
         const statsGrid = document.getElementById('stats-grid');
@@ -1494,6 +1572,7 @@
 
         const notaCalculo = document.getElementById('frequency-calculation-note');
         const textoCalculo = document.getElementById('frequency-calculation-text');
+        if (notaCalculo) notaCalculo.classList.remove('frequency-calculation-note--warning');
         if (notaCalculo && textoCalculo) {
           const semCalculo = totalPatients - frequenciasCalculadas.length;
           const motivoCalendario = data.calendar?.reason || '';
@@ -1825,11 +1904,16 @@
         if (!state?.relatorioGerado) return false;
 
         restaurandoEstadoRelatorio = true;
-
         setFilterDateValue('start-date', state.startDate);
         setFilterDateValue('end-date', state.endDate);
 
-        restoreReportPatientSelection(state);
+        // Paciente é seleção transitória: ao abrir/reabrir Frequência,
+        // nenhum paciente fica pré-selecionado.
+        restoreReportPatientSelection({
+          allPatientsSelected: false,
+          patientIds: [],
+          patientNames: []
+        });
 
         document.getElementById('sector-filter').value = state.course || '';
         await loadActivitiesFilter(state.course || '', state.activity || '');
@@ -1838,24 +1922,28 @@
         document.getElementById('admin-grouping').value = state.adminGrouping || 'monthly';
         syncReportControls();
 
-        const pageSize = Number(state.registrosPorPagina);
-        const pageSizeSelect = document.getElementById('frequency-report-page-size');
-        if (PaginacaoLista.OPCOES_PADRAO.includes(pageSize)) {
-          pageSizeSelect.value = String(pageSize);
-          pageSizeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        // Restaura apenas os filtros. Relatório e validações só são executados
+        // depois de uma ação explícita em “Gerar Relatório”.
+        estadoRelatorioAtual = null;
+        currentReportData = [];
+        const reportList = document.getElementById('report-list');
+        const statsGrid = document.getElementById('stats-grid');
+        const notaCalculo = document.getElementById('frequency-calculation-note');
+        const exportarPdf = document.getElementById('btn-export-pdf');
+        if (statsGrid) statsGrid.hidden = true;
+        if (notaCalculo) notaCalculo.hidden = true;
+        if (exportarPdf) exportarPdf.hidden = true;
+        if (reportList) {
+          reportList.innerHTML = `
+            <div class="empty-state">
+              <span class="empty-state-icon icone" data-icone="caixa-vazia" aria-hidden="true"></span>
+              <p>Defina os filtros e clique em “Gerar Relatório”</p>
+            </div>
+          `;
+          window.IconesCAIGE?.aplicar?.(reportList);
         }
-
-        reportPagination.paginaAtual = Math.max(1, Number(state.paginaAtual) || 1);
-        estadoRelatorioAtual = state;
-
-        const restored = await generateReport({
-          restoring: true,
-          restoredState: state
-        });
-
         restaurandoEstadoRelatorio = false;
-        if (restored) saveReportSessionState();
-        return restored;
+        return true;
       }
 
       document.getElementById('sector-filter').addEventListener('change', (event) => {

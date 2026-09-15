@@ -17,6 +17,20 @@ class MenuAcoes {
   static elemento = null;
   static botaoAtual = null;
   static fechamentoPendente = null;
+  static registroAtual = null;
+
+  static _obterRegistroDoBotao(botao) {
+    return botao?.closest?.(
+      'tr, .data-grid__row, .admin-record, .lista-entidades__item--horizontal, .lista-entidades__item'
+    ) || null;
+  }
+
+  static _limparRegistroAtivo() {
+    if (this.registroAtual) {
+      this.registroAtual.classList.remove('caige-actions-row-active');
+      this.registroAtual = null;
+    }
+  }
 
   static _garantirElemento() {
     if (this.elemento) {
@@ -129,6 +143,10 @@ class MenuAcoes {
 
     this.botaoAtual = botao;
 
+    this._limparRegistroAtivo();
+    this.registroAtual = this._obterRegistroDoBotao(botao);
+    this.registroAtual?.classList.add('caige-actions-row-active');
+
     /*
       O Shell desktop pode estar dentro de uma viewport virtual escalada
       com transform: scale(). getBoundingClientRect() devolve coordenadas
@@ -154,9 +172,23 @@ class MenuAcoes {
       (document.documentElement.clientHeight || window.innerHeight) / escala;
 
     let esquerda = retangulo.right - largura;
-    let topo = retangulo.bottom + 6;
 
     const margem = 8;
+    const espacamento = 6;
+    const espacoAbaixo = alturaViewport - retangulo.bottom - margem;
+    const espacoAcima = retangulo.top - margem;
+    const cabeAbaixo = espacoAbaixo >= altura + espacamento;
+    const cabeAcima = espacoAcima >= altura + espacamento;
+
+    let direcao = 'down';
+    let topo = retangulo.bottom + espacamento;
+
+    // Desktop/popover: abre para baixo quando couber. Perto do rodapé,
+    // inverte para cima sem deslocar a página.
+    if (!cabeAbaixo && (cabeAcima || espacoAcima > espacoAbaixo)) {
+      direcao = 'up';
+      topo = retangulo.top - altura - espacamento;
+    }
 
     if (esquerda < margem) {
       esquerda = margem;
@@ -166,14 +198,10 @@ class MenuAcoes {
       esquerda = larguraViewport - largura - margem;
     }
 
-    if (topo + altura > alturaViewport - margem) {
-      topo = retangulo.top - altura - 6;
-    }
+    // Fallback somente quando o próprio menu é maior que o espaço útil.
+    topo = Math.max(margem, Math.min(topo, alturaViewport - altura - margem));
 
-    if (topo < margem) {
-      topo = margem;
-    }
-
+    menu.dataset.placement = direcao;
     menu.style.left = `${Math.round(esquerda)}px`;
     menu.style.top = `${Math.round(topo)}px`;
     menu.style.visibility = 'visible';
@@ -211,12 +239,14 @@ class MenuAcoes {
     }
 
     this.botaoAtual = null;
+    this._limparRegistroAtivo();
 
     const finalizarFechamento = () => {
       this._cancelarFechamentoPendente();
       menu.hidden = true;
       menu.innerHTML = '';
       menu.style.visibility = '';
+      delete menu.dataset.placement;
     };
 
     if (menu.hidden) {

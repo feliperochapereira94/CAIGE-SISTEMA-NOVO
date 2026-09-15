@@ -249,6 +249,7 @@
 
 .questionnaire-questions {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
     gap: var(--space-2);
 
@@ -268,6 +269,11 @@
     background: var(--gray-50);
 
     counter-increment: caige-question;
+}
+
+
+.questionnaire-question--wide {
+    grid-column: 1 / -1;
 }
 
 .questionnaire-question__label {
@@ -346,3 +352,15 @@
     accent-color: var(--blue-600);
 }
 
+
+
+/* Hotfix V1 - disposição responsiva dos campos de prontuário */
+@media (max-width: 700px) {
+    .questionnaire-questions {
+        grid-template-columns: 1fr;
+    }
+
+    .questionnaire-question--wide {
+        grid-column: auto;
+    }
+}

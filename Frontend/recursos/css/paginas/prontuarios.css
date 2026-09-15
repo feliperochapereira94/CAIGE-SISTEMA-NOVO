@@ -360,7 +360,7 @@ body[data-page-title="Cadastro de Perguntas"] .list-toolbar {
     min-width: 0;
     padding: var(--space-3);
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     align-items: center;
     gap: var(--space-3);
     border-bottom: 1px solid var(--border-light);
@@ -422,6 +422,32 @@ body[data-page-title="Cadastro de Perguntas"] .list-toolbar {
 .prontuario-question-row__order .order-input {
     width: 64px;
     min-height: 34px;
+}
+
+.prontuario-question-row__layout {
+    display: grid;
+    grid-template-columns: auto minmax(130px, 160px);
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--fonte-texto-auxiliar);
+    font-weight: 600;
+}
+
+.prontuario-question-row__layout select {
+    min-height: 34px;
+}
+
+.prontuario-preview__descricao {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: var(--fonte-texto-auxiliar);
+    font-weight: 400;
+}
+
+.prontuario-preview__placeholder {
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 .prontuario-catalog-toolbar {
@@ -741,7 +767,8 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__body {
         grid-template-columns: auto minmax(0, 1fr);
     }
 
-    .prontuario-question-row__order {
+    .prontuario-question-row__order,
+    .prontuario-question-row__layout {
         grid-column: 2;
         justify-self: start;
     }
@@ -870,5 +897,39 @@ body[data-page-title="Prontuário do Paciente"] .course-accordion__body {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+    }
+}
+
+/* =========================================================
+   HOTFIX - PREVIA DO PRONTUARIO
+   Mantem alternativas curtas na mesma linha quando houver
+   espaco e normaliza o respiro do rodape do modal.
+   ========================================================= */
+#questionnaire-preview-modal .prontuario-documento__opcoes {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#questionnaire-preview-modal .prontuario-documento__opcao {
+    flex: 0 0 auto;
+    padding: 5px 7px;
+    white-space: nowrap;
+}
+
+#questionnaire-preview-modal .modal__form-actions {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 12px 14px 14px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--white);
+}
+
+@media (min-width: 768px) {
+    #questionnaire-preview-modal .prontuario-documento__pergunta:not(.prontuario-documento__pergunta--larga) .prontuario-documento__opcoes {
+        gap: 5px;
+    }
+
+    #questionnaire-preview-modal .prontuario-documento__pergunta:not(.prontuario-documento__pergunta--larga) .prontuario-documento__opcao {
+        padding-inline: 6px;
     }
 }

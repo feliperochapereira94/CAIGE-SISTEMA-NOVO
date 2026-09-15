@@ -193,8 +193,11 @@ class GerenciadorQuestionarios {
    */
   renderizarPergunta(question, responseValue = '') {
     const questionId = question.id;
+    const layout = question.layout || question.disposicao || 'automatico';
+    const isWide = layout === 'linha_inteira' ||
+      (layout === 'automatico' && question.question_type === 'texto_livre');
     let html = `
-      <div class="questionnaire-question" data-question-id="${questionId}">
+      <div class="questionnaire-question ${isWide ? 'questionnaire-question--wide' : ''}" data-question-id="${questionId}">
         <label class="questionnaire-question__label">
           <span class="questionnaire-question__title">${this.escaparHtml(question.title)}</span>
           ${question.description ? `<p class="questionnaire-question__description">${this.escaparHtml(question.description)}</p>` : ''}

@@ -26,6 +26,7 @@ export function criarDadosResposta(perguntas, respostas) {
         tipo_pergunta: pergunta.tipo_pergunta,
         opcoes_snapshot: pergunta.opcoes,
         ordem_pergunta: pergunta.ordem_pergunta,
+        disposicao: pergunta.disposicao || 'automatico',
         resposta: respostas[pergunta.id] || null
       }
     ])
@@ -34,7 +35,7 @@ export function criarDadosResposta(perguntas, respostas) {
 
 export function criarSnapshotProntuario({ questionario, perguntas, profissional }) {
   return {
-    versao: 1,
+    versao: 2,
     questionario: {
       id: questionario.id,
       titulo: questionario.titulo,
@@ -48,7 +49,8 @@ export function criarSnapshotProntuario({ questionario, perguntas, profissional 
       descricao: pergunta.descricao || null,
       tipo_pergunta: pergunta.tipo_pergunta,
       opcoes_snapshot: pergunta.opcoes,
-      ordem_pergunta: pergunta.ordem_pergunta
+      ordem_pergunta: pergunta.ordem_pergunta,
+      disposicao: pergunta.disposicao || 'automatico'
     })),
     registro: {
       id_profissional: profissional.id,

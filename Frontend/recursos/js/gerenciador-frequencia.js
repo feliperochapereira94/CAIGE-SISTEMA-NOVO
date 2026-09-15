@@ -10,7 +10,6 @@ class GerenciadorFrequencia {
 
     // Estado do combobox pesquisável de pacientes
     this.pacientesSelecionados = new Map(); // id -> { id, nome }
-    this.LIMITE_PACIENTES = 50
     this.comboboxAberto = false;
     this.paginaAtual = 1;
     this.limitePorPagina = 5;
@@ -42,7 +41,10 @@ class GerenciadorFrequencia {
       this.setupFormulario();
       this.configurarRolagemAssistidaFormulario();
       await this.aplicarControleAcesso();
-      this.restaurarEstadoTrabalho();
+
+      // Pacientes marcados para presença são uma seleção transitória.
+      // Nunca restaurar marcações de uma visita anterior à tela.
+      this.limparSelecaoPacientes(true);
     } catch (error) {
       console.error('Erro ao inicializar frequência:', error);
       notify.error('Erro ao inicializar formulário');
@@ -169,9 +171,10 @@ class GerenciadorFrequencia {
 
     const rolarPainelExpandido = () => {
       if (toggle.getAttribute('aria-expanded') !== 'true') return;
+      if (!window.matchMedia('(max-width: 767px)').matches) return;
 
-      // Mantém o título do painel visível e leva o início do formulário
-      // para uma região confortável da tela em monitores menores.
+      // Em telas pequenas, mantém o início do formulário acessível.
+      // Desktop não é reposicionado artificialmente ao expandir.
       this.rolarParaElementoSeNecessario(painel, {
         alinharAoTopo: true,
         margemSuperior: 12
@@ -340,6 +343,31 @@ class GerenciadorFrequencia {
     });
   }
 
+  ajustarDirecaoDropdownPaciente() {
+    const combobox = document.getElementById('attendance-patient-combobox');
+    const dropdown = document.getElementById('attendance-patient-dropdown');
+    const trigger = document.getElementById('attendance-patient-trigger');
+    if (!combobox || !dropdown || !trigger || dropdown.hidden) return;
+
+    // No mobile o fluxo vertical continua natural. No desktop o dropdown
+    // escolhe automaticamente cima/baixo sem reposicionar a página.
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      combobox.classList.remove('drop-up');
+      return;
+    }
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const altura = Math.min(dropdown.scrollHeight || 290, 420);
+    const margem = 12;
+    const espacoAbaixo = window.innerHeight - triggerRect.bottom - margem;
+    const espacoAcima = triggerRect.top - margem;
+
+    combobox.classList.toggle(
+      'drop-up',
+      espacoAbaixo < altura + 6 && espacoAcima > espacoAbaixo
+    );
+  }
+
   async abrirDropdownPaciente() {
     const dropdown = document.getElementById('attendance-patient-dropdown');
     const trigger = document.getElementById('attendance-patient-trigger');
@@ -372,10 +400,13 @@ class GerenciadorFrequencia {
       this.atualizarSelecaoVisualItens();
     }
 
-    // Se o seletor abrir perto da borda inferior, desloca a página o suficiente
-    // para que busca, ações e lista fiquem visíveis sem rolagem manual extra.
+    // Desktop: posicionamento inteligente (baixo/cima) sem forçar scroll.
+    // Mobile: mantém rolagem assistida apenas quando necessária.
     window.setTimeout(() => {
-      this.rolarParaElementoSeNecessario(dropdown);
+      this.ajustarDirecaoDropdownPaciente();
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        this.rolarParaElementoSeNecessario(dropdown);
+      }
     }, 40);
   }
 
@@ -545,7 +576,7 @@ class GerenciadorFrequencia {
       resultsList.before(header);
       header.querySelector('[data-action="selecionar-todos"]').addEventListener('click', (e) => {
         e.stopPropagation();
-        this.selecionarTodosVisiveis();
+        this.selecionarTodosDisponiveis();
       });
       header.querySelector('[data-action="limpar-todos"]').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -571,10 +602,6 @@ class GerenciadorFrequencia {
     if (this.pacientesSelecionados.has(chave)) {
       this.pacientesSelecionados.delete(chave);
     } else {
-      if (this.pacientesSelecionados.size >= this.LIMITE_PACIENTES) {
-        window.notify?.warning(`Selecione no máximo ${this.LIMITE_PACIENTES} pacientes por registro.`);
-        return;
-      }
       this.pacientesSelecionados.set(chave, { id: Number(id), nome });
     }
     this.atualizarSelecaoVisualItens();
@@ -582,20 +609,55 @@ class GerenciadorFrequencia {
     this.sincronizarEstadoCamposDependentes();
   }
 
-  selecionarTodosVisiveis() {
-    const itens = Array.from(document.querySelectorAll('#attendance-patient-results .attendance-patient-item'));
-    let atingiuLimite = false;
-    for (const item of itens) {
-      if (this.pacientesSelecionados.size >= this.LIMITE_PACIENTES) { atingiuLimite = true; break; }
-      const id = String(item.dataset.id);
-      if (!this.pacientesSelecionados.has(id)) {
-        this.pacientesSelecionados.set(id, { id: Number(id), nome: item.dataset.name || '' });
-      }
+  async selecionarTodosDisponiveis() {
+    const botao = document.querySelector('[data-action="selecionar-todos"]');
+    if (botao) botao.disabled = true;
+
+    try {
+      let pagina = 1;
+      const limite = 100;
+      let totalRecebido = 0;
+
+      do {
+        const params = new URLSearchParams({
+          status: 'ativo',
+          limit: String(limite),
+          page: String(pagina)
+        });
+
+        // "Selecionar todos" respeita a pesquisa atual do seletor.
+        if (this.termoPesquisaAtual) params.set('q', this.termoPesquisaAtual);
+
+        const response = await fetch(`${this.API_BASE}/pacientes?${params.toString()}`, {
+          headers: this.obterHeaders()
+        });
+
+        if (!response.ok) throw new Error('Não foi possível carregar todos os pacientes');
+
+        const data = await response.json();
+        const pacientes = Array.isArray(data) ? data : (data.pacientes || data.data || []);
+        totalRecebido = pacientes.length;
+
+        for (const paciente of pacientes) {
+          const id = Number(paciente.id);
+          if (!id) continue;
+          const raw = String(paciente.name || paciente.nome || '').trim();
+          const nome = window.FormatadorTexto ? window.FormatadorTexto.formatarNomePessoa(raw) : raw;
+          this.pacientesSelecionados.set(String(id), { id, nome });
+        }
+
+        pagina += 1;
+      } while (totalRecebido === limite);
+
+      this.atualizarSelecaoVisualItens();
+      this.salvarEstadoTrabalho();
+      this.sincronizarEstadoCamposDependentes();
+    } catch (error) {
+      console.error('Erro ao selecionar todos os pacientes:', error);
+      window.notify?.error('Não foi possível selecionar todos os pacientes.');
+    } finally {
+      if (botao) botao.disabled = false;
     }
-    if (atingiuLimite) window.notify?.warning(`O limite é de ${this.LIMITE_PACIENTES} pacientes por registro.`);
-    this.atualizarSelecaoVisualItens();
-    this.salvarEstadoTrabalho();
-    this.sincronizarEstadoCamposDependentes();
   }
 
   atualizarResumoSelecao() {
@@ -630,7 +692,7 @@ class GerenciadorFrequencia {
   restaurarEstadoTrabalho() {
     if (typeof EstadoSessao === 'undefined') return;
     const estado = EstadoSessao.obter('frequencia', 'registro');
-    const pacientes = Array.isArray(estado?.pacientes) ? estado.pacientes.slice(0, this.LIMITE_PACIENTES) : [];
+    const pacientes = Array.isArray(estado?.pacientes) ? estado.pacientes : [];
     pacientes.forEach((paciente) => {
       const id = Number(paciente?.id);
       if (id > 0) this.pacientesSelecionados.set(String(id), { id, nome: String(paciente?.nome || '') });
@@ -1036,7 +1098,15 @@ class GerenciadorFrequencia {
         this.limparSelecaoPaciente();
         await this.aplicarControleAcesso();
       } else {
-        notify.error(data.message || 'Erro ao registrar presença');
+        const mensagem = data.message || 'Erro ao registrar presença';
+        if (response.status === 409 && (
+            String(data.code || '').startsWith('CALENDARIO') ||
+            ['SEMESTRE_NAO_ATIVO', 'ATIVIDADE_SEM_DIAS', 'DIA_NAO_CONFIGURADO', 'DATA_SEM_ATENDIMENTO'].includes(data.code)
+          )) {
+          notify.warning ? notify.warning(mensagem) : notify.error(mensagem);
+        } else {
+          notify.error(mensagem);
+        }
       }
     } catch (error) {
       console.error('Erro ao registrar presença:', error);

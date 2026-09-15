@@ -731,3 +731,213 @@
     }
 }
 
+
+/* =========================================================
+   HOTFIX MOBILE V1 - MESMA LINGUAGEM DE MOVIMENTAÇÕES
+   Painel reutiliza visualmente a timeline da tela Movimentações.
+   ========================================================= */
+@media (max-width: 767px) {
+    .dashboard-events-body {
+        max-height: 400px;
+        background: var(--surface);
+        overflow-x: hidden;
+    }
+
+    .dashboard-events-table {
+        gap: 0;
+        padding: 0 12px;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header) {
+        position: relative;
+        min-height: 76px;
+        padding: 12px 4px 12px 22px;
+        background: transparent;
+        border: 0;
+        border-left: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header) + .dashboard-event-row:not(.dashboard-event-row--header) {
+        border-top: 1px solid var(--border-light);
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header)::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 18px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--blue-600);
+        box-shadow: 0 0 0 3px var(--blue-50);
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header)::after {
+        content: '';
+        position: absolute;
+        left: 8.5px;
+        top: 29px;
+        bottom: -1px;
+        width: 1px;
+        background: var(--blue-100);
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header):last-child::after {
+        display: none;
+    }
+
+    .dashboard-event-responsible {
+        padding-top: 1px;
+        border-top: 0;
+    }
+}
+
+
+/* =========================================================
+   HOTFIX MOBILE V2 - PAINEL = MESMA TIMELINE DE MOVIMENTAÇÕES
+   Remove divisões internas herdadas do data-grid e replica
+   a composição visual da página de Movimentações.
+   ========================================================= */
+@media (max-width: 767px) {
+    .dashboard-events-body {
+        background: var(--surface);
+    }
+
+    .dashboard-events-table {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 0 12px;
+        background: transparent;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header) {
+        width: 100%;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "data tipo"
+            "descricao descricao"
+            "responsavel responsavel";
+        column-gap: 8px;
+        row-gap: 5px;
+        min-height: 76px;
+        padding: 12px 4px 12px 22px;
+        background-color: transparent;
+        background-image:
+            linear-gradient(var(--border-light), var(--border-light));
+        background-repeat: no-repeat;
+        background-position: right bottom;
+        background-size: calc(100% - 22px) 1px;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header) + .dashboard-event-row:not(.dashboard-event-row--header) {
+        border-top: 0;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header):last-child {
+        background-image: none;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header) > .data-grid__cell {
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header)::after {
+        top: 26px;
+        bottom: -26px;
+        z-index: 0;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header)::before {
+        z-index: 1;
+    }
+
+    .dashboard .dashboard-event-row:not(.dashboard-event-row--header):last-child::after {
+        display: none;
+    }
+
+    .dashboard-event-date {
+        grid-area: data;
+        align-self: center;
+        padding: 0;
+        border: 0;
+        font-size: var(--fonte-meta);
+        line-height: 1.2;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .dashboard-event-type {
+        grid-area: tipo;
+        justify-self: end;
+        align-self: center;
+    }
+
+    .dashboard-event-description {
+        grid-area: descricao;
+        padding: 0;
+        border: 0;
+        font-size: var(--fonte-corpo);
+        line-height: 1.35;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .dashboard-event-responsible {
+        grid-area: responsavel;
+        justify-self: end;
+        padding: 0;
+        border: 0 !important;
+        font-size: var(--fonte-meta);
+        line-height: 1.2;
+        color: #64748b;
+        text-align: right;
+    }
+}
+
+
+/* =========================================================
+   REFERÊNCIA APROVADA - TOGGLE MOVIMENTAÇÕES IMPORTANTES
+   Botão circular azul com chevron branco no cabeçalho azul.
+   ========================================================= */
+.dashboard-events-toggle.cabecalho-destaque__toggle {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+}
+
+.dashboard-events-toggle.cabecalho-destaque__toggle:hover,
+.dashboard-events-toggle.cabecalho-destaque__toggle:focus-visible {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.20) !important;
+}
+
+.dashboard-events-toggle__icon.cabecalho-destaque__toggle-icon {
+    width: 8px !important;
+    height: 8px !important;
+    border-right: 2px solid currentColor !important;
+    border-bottom: 2px solid currentColor !important;
+}

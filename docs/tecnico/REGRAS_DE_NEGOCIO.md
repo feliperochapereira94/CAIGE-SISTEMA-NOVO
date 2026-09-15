@@ -164,3 +164,41 @@ Pacientes arquivados podem ser recuperados conforme o fluxo atual. A exclusão a
 
 ## 14. Regra de manutenção
 Se uma mudança alterar qualquer regra deste documento, a alteração de código e a atualização desta documentação devem fazer parte da mesma entrega.
+
+
+### 8.4 Bloqueios obrigatórios do calendário
+
+O calendário de frequência é uma pré-condição funcional para cálculo e lançamento:
+
+- o relatório não é gerado quando o intervalo não possui período letivo `ATIVO` ou `ENCERRADO`;
+- quando curso/atividade está definido, o relatório também é bloqueado se não houver grade aplicável para calcular encontros previstos;
+- registro de presença exige que a data atual esteja dentro de um período `ATIVO`;
+- período `PLANEJADO` ainda não aceita presença e período `ENCERRADO` não aceita novos lançamentos;
+- a atividade deve possuir atendimento previsto no dia da semana atual, usando primeiro grade específica da atividade e, na ausência dela, a grade geral do curso;
+- datas cadastradas como exceção/sem atendimento bloqueiam presença;
+- as regras são validadas no Backend. A interface apenas apresenta a advertência correspondente, portanto chamadas diretas à API não contornam o bloqueio;
+- sem calendário válido, o sistema não deve preencher relatório com “Não calculada” como substituto de uma configuração administrativa ausente.
+
+
+#### Regra definitiva dos dias por atividade (15/09/2026)
+
+- Cada atividade deve possuir seus próprios dias de atendimento cadastrados no calendário de frequência.
+- Não existe herança/fallback dos dias gerais do curso para autorizar presença de uma atividade.
+- Atividade sem qualquer dia cadastrado: bloquear presença e informar que não existem dias de atendimento cadastrados.
+- Atividade com dias cadastrados, mas fora do dia atual: bloquear e informar que a atividade não está programada para atendimento hoje.
+- Somente atividade com o dia atual explicitamente cadastrado pode receber presença, desde que o semestre esteja ATIVO e a data não seja uma exceção sem atendimento.
+- Relatórios que dependem de calendário incompleto devem ser bloqueados, em vez de apresentar frequência “Não calculada”.
+
+
+### 8.5 Relatório com múltiplos cursos e atividades
+
+- “Todos os cursos” e “Todas as atividades” permanecem opções válidas do relatório.
+- O calendário é calculado por atividade; não existe fallback para dias gerais do curso.
+- Em relatórios amplos, cada paciente é calculado sobre as atividades em que possui participação compatível com os filtros. Cada encontro previsto é identificado pelo par atividade + data, evitando misturar agendas de cursos diferentes.
+- Se uma atividade envolvida no relatório não possuir dias próprios no semestre correspondente, a geração é bloqueada e a mensagem identifica a configuração ausente.
+- O filtro de profissional restringe os registros apresentados, mas não altera a agenda prevista da atividade.
+- Ao reabrir a tela, os filtros podem ser restaurados, porém o relatório não é executado automaticamente; a validação ocorre somente após “Gerar Relatório”.
+
+### Relatório — pacientes e registros históricos
+- Abre sem paciente pré-selecionado; exige um ou mais pacientes para gerar.
+- Registro histórico fora do dia previsto permanece visível por auditoria, mas não conta como comparecimento nem altera o percentual.

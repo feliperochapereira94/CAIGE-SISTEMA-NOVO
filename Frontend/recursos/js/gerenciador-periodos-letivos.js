@@ -66,6 +66,52 @@
     $('#periodo-letivo-cancelar').hidden = !periodo;
   }
 
+  function ordenarPeriodosMaisRecentes(periodos) {
+    return [...periodos].sort((a, b) => {
+      const ano = Number(b.ano) - Number(a.ano);
+      if (ano !== 0) return ano;
+      return Number(b.semestre) - Number(a.semestre);
+    });
+  }
+
+  function htmlPeriodo(periodo, { historico = false } = {}) {
+    const selecionado = Number(estado.periodoAtual?.id) === Number(periodo.id);
+    return `
+      <article class="periodo-item lista-entidades__item lista-entidades__item--horizontal ${historico ? 'periodo-item--historico' : ''} ${selecionado ? 'periodo-item--selecionado' : ''}">
+        <div class="lista-entidades__conteudo">
+          <div class="lista-entidades__titulo">${periodo.ano}/${periodo.semestre}</div>
+          <div class="lista-entidades__meta">${formatarData(periodo.dataInicio)} a ${formatarData(periodo.dataFim)}</div>
+          <div class="lista-entidades__meta"><span class="status-badge ${statusClasse(periodo.status)}">${periodo.status}</span></div>
+        </div>
+        <div class="lista-entidades__acoes">
+          <button type="button" class="btn-small" data-periodo-gerenciar="${periodo.id}">Calendário</button>
+          ${periodo.status !== 'ENCERRADO' ? `<button type="button" class="btn-small" data-periodo-editar="${periodo.id}">Editar</button>` : ''}
+        </div>
+      </article>
+    `;
+  }
+
+  function htmlHistoricoPeriodos(periodos) {
+    const porAno = periodos.reduce((grupos, periodo) => {
+      const ano = String(periodo.ano);
+      if (!grupos[ano]) grupos[ano] = [];
+      grupos[ano].push(periodo);
+      return grupos;
+    }, {});
+
+    return Object.keys(porAno)
+      .sort((a, b) => Number(b) - Number(a))
+      .map((ano) => `
+        <section class="periodos-historico__ano">
+          <h4 class="periodos-historico__titulo-ano">${ano}</h4>
+          <div class="periodos-historico__lista">
+            ${porAno[ano].map((periodo) => htmlPeriodo(periodo, { historico: true })).join('')}
+          </div>
+        </section>
+      `)
+      .join('');
+  }
+
   function renderizarPeriodos() {
     const lista = $('#periodos-letivos-lista');
     if (!lista) return;
@@ -75,22 +121,37 @@
       return;
     }
 
-    lista.innerHTML = estado.periodos.map((periodo) => {
-      const selecionado = Number(estado.periodoAtual?.id) === Number(periodo.id);
-      return `
-        <article class="periodo-item lista-entidades__item lista-entidades__item--horizontal ${selecionado ? 'periodo-item--selecionado' : ''}">
-          <div class="lista-entidades__conteudo">
-            <div class="lista-entidades__titulo">${periodo.ano}/${periodo.semestre}</div>
-            <div class="lista-entidades__meta">${formatarData(periodo.dataInicio)} a ${formatarData(periodo.dataFim)}</div>
-            <div class="lista-entidades__meta"><span class="status-badge ${statusClasse(periodo.status)}">${periodo.status}</span></div>
+    const ordenados = ordenarPeriodosMaisRecentes(estado.periodos);
+    const atuais = ordenados.filter((periodo) => periodo.status !== 'ENCERRADO');
+    const encerrados = ordenados.filter((periodo) => periodo.status === 'ENCERRADO');
+    const encerradosRecentes = encerrados.slice(0, 2);
+    const historico = encerrados.slice(2);
+    const principais = [...atuais, ...encerradosRecentes];
+
+    lista.innerHTML = `
+      <div class="periodos-principais">
+        ${principais.map((periodo) => htmlPeriodo(periodo)).join('')}
+      </div>
+      ${historico.length ? `
+        <div class="periodos-historico">
+          <button
+            type="button"
+            class="periodos-historico__accordion"
+            data-periodos-historico-toggle
+            aria-expanded="false"
+          >
+            <span class="periodos-historico__resumo">
+              <strong>Histórico de semestres</strong>
+              <span class="periodos-historico__contador">${historico.length} ${historico.length === 1 ? 'período' : 'períodos'}</span>
+            </span>
+            <span class="periodos-historico__seta" aria-hidden="true"></span>
+          </button>
+          <div class="periodos-historico__conteudo" data-periodos-historico hidden>
+            ${htmlHistoricoPeriodos(historico)}
           </div>
-          <div class="lista-entidades__acoes">
-            <button type="button" class="btn-small" data-periodo-gerenciar="${periodo.id}">Calendário</button>
-            ${periodo.status !== 'ENCERRADO' ? `<button type="button" class="btn-small" data-periodo-editar="${periodo.id}">Editar</button>` : ''}
-          </div>
-        </article>
-      `;
-    }).join('');
+        </div>
+      ` : ''}
+    `;
   }
 
   async function carregarPeriodos({ preservarSelecao = true } = {}) {
@@ -147,6 +208,38 @@
     $('#excecao-periodo-form')?.querySelectorAll('input, select, button').forEach((elemento) => {
       elemento.disabled = bloqueado;
     });
+  }
+
+  async function abrirCalendarioHistorico(id) {
+    const periodo = estado.periodos.find((item) => Number(item.id) === Number(id));
+    if (!periodo) return;
+
+    const modal = $('#modal-calendario-periodo');
+    if (!modal) {
+      selecionarPeriodo(id);
+      return;
+    }
+
+    $('#modal-calendario-periodo-titulo').textContent = `Calendário do semestre ${periodo.ano}/${periodo.semestre}`;
+    $('#modal-calendario-periodo-datas').textContent = `${formatarData(periodo.dataInicio)} a ${formatarData(periodo.dataFim)}`;
+    $('#modal-calendario-periodo-status').textContent = periodo.status;
+    $('#modal-calendario-periodo-dias').textContent = 'Carregando...';
+    modal.style.display = 'flex';
+
+    try {
+      const grade = await requisicao(`/api/periodos-letivos/${periodo.id}/grade`);
+      const dias = [...new Set((Array.isArray(grade) ? grade : [])
+        .map((item) => Number(item.diaSemana))
+        .filter((dia) => DIAS_SEMANA[dia]))]
+        .sort((a, b) => a - b);
+
+      $('#modal-calendario-periodo-dias').textContent = dias.length
+        ? dias.map((dia) => DIAS_SEMANA[dia]).join(', ')
+        : 'Nenhum dia cadastrado';
+    } catch (error) {
+      $('#modal-calendario-periodo-dias').textContent = 'Não foi possível carregar';
+      notify.error(error.message);
+    }
   }
 
   async function selecionarPeriodo(id) {
@@ -441,8 +534,26 @@
     $('#periodo-letivo-form')?.addEventListener('submit', salvarPeriodo);
     $('#periodo-letivo-cancelar')?.addEventListener('click', () => preencherFormularioPeriodo());
     $('#periodos-letivos-lista')?.addEventListener('click', (evento) => {
+      const alternarHistorico = evento.target.closest('[data-periodos-historico-toggle]');
+      if (alternarHistorico) {
+        const historico = $('#periodos-letivos-lista')?.querySelector('[data-periodos-historico]');
+        const aberto = alternarHistorico.getAttribute('aria-expanded') === 'true';
+        alternarHistorico.setAttribute('aria-expanded', String(!aberto));
+        if (historico) historico.hidden = aberto;
+        // Accordion faz parte do fluxo normal do documento:
+        // expande/recolhe sem scrollIntoView, scrollTo ou reposicionamento.
+        return;
+      }
+
       const gerenciar = evento.target.closest('[data-periodo-gerenciar]');
-      if (gerenciar) selecionarPeriodo(gerenciar.dataset.periodoGerenciar);
+      if (gerenciar) {
+        const periodo = estado.periodos.find((item) => Number(item.id) === Number(gerenciar.dataset.periodoGerenciar));
+        if (gerenciar.closest('.periodo-item--historico') && periodo?.status === 'ENCERRADO') {
+          abrirCalendarioHistorico(gerenciar.dataset.periodoGerenciar);
+        } else {
+          selecionarPeriodo(gerenciar.dataset.periodoGerenciar);
+        }
+      }
 
       const editar = evento.target.closest('[data-periodo-editar]');
       if (editar) {

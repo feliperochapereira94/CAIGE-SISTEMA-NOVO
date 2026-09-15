@@ -221,7 +221,9 @@
     return entradas.map((entrada, indice) => {
       const tipo = entrada.tipo_pergunta || entrada.question_type || 'texto_livre';
       const resposta = String(entrada.resposta ?? entrada.answer ?? '');
-      const ampla = tipo === 'texto_livre' || resposta.length > 90;
+      const disposicao = entrada.disposicao || entrada.layout || 'automatico';
+      const ampla = disposicao === 'linha_inteira' ||
+        (disposicao === 'automatico' && (tipo === 'texto_livre' || resposta.length > 90));
 
       return `
         <section class="prontuario-documento__pergunta ${ampla ? 'prontuario-documento__pergunta--larga' : ''}">

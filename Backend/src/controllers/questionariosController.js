@@ -584,6 +584,29 @@ export const deleteQuestion = async (req, res) => {
   }
 };
 
+function normalizarDisposicaoPergunta(valor) {
+  const disposicao = String(valor || 'automatico').trim().toLowerCase();
+  return ['automatico', 'linha_inteira', 'lado_a_lado'].includes(disposicao)
+    ? disposicao
+    : 'automatico';
+}
+
+function normalizarQuestoesQuestionario(values) {
+  if (!Array.isArray(values)) return [];
+
+  return values.map((value, index) => {
+    const id = parsePositiveInt(typeof value === 'object' ? value.id : value);
+    if (!id) return null;
+    return {
+      id,
+      ordem: index + 1,
+      disposicao: normalizarDisposicaoPergunta(
+        typeof value === 'object' ? (value.disposicao || value.layout) : 'automatico'
+      )
+    };
+  }).filter(Boolean);
+}
+
 // ==================== QUESTIONARIOS ====================
 
 export const getQuestionnaires = async (req, res) => {
@@ -758,7 +781,8 @@ export const createQuestionnaire = async (req, res) => {
     const description = req.body.description || req.body.descricao || null;
     let idCurso = parsePositiveInt(req.body.idCurso || req.body.course_id || req.body.courseId);
     const questions = req.body.questions || req.body.perguntas;
-    const questionIds = normalizeIdArray(questions);
+    const questionItems = normalizarQuestoesQuestionario(questions);
+    const questionIds = questionItems.map((item) => item.id);
 
     if (!user.id) {
       return res.status(401).json({ message: 'Usuário não encontrado' });
@@ -797,10 +821,12 @@ export const createQuestionnaire = async (req, res) => {
 
     const questionnaireId = result.insertId;
 
-    for (let i = 0; i < questionIds.length; i++) {
+    for (const item of questionItems) {
       await pool.query(
-        'INSERT INTO questoes_questionarios (id_questionario, id_pergunta, ordem_pergunta, ativo) VALUES (?, ?, ?, TRUE)',
-        [questionnaireId, questionIds[i], i + 1]
+        `INSERT INTO questoes_questionarios
+         (id_questionario, id_pergunta, ordem_pergunta, disposicao, ativo)
+         VALUES (?, ?, ?, ?, TRUE)`,
+        [questionnaireId, item.id, item.ordem, item.disposicao]
       );
     }
 
@@ -831,7 +857,8 @@ export const updateQuestionnaire = async (req, res) => {
     const title = req.body.title || req.body.titulo;
     const description = req.body.description || req.body.descricao || null;
     const questions = req.body.questions || req.body.perguntas;
-    const questionIds = normalizeIdArray(questions);
+    const questionItems = normalizarQuestoesQuestionario(questions);
+    const questionIds = questionItems.map((item) => item.id);
 
     if (!id) {
       return res.status(400).json({ message: 'ID inválido' });
@@ -894,12 +921,16 @@ export const updateQuestionnaire = async (req, res) => {
         );
       }
 
-      for (let i = 0; i < questionIds.length; i++) {
+      for (const item of questionItems) {
         await pool.query(
-          `INSERT INTO questoes_questionarios (id_questionario, id_pergunta, ordem_pergunta)
-           VALUES (?, ?, ?)
-           ON DUPLICATE KEY UPDATE ordem_pergunta = VALUES(ordem_pergunta), ativo = TRUE`,
-          [id, questionIds[i], i + 1]
+          `INSERT INTO questoes_questionarios
+           (id_questionario, id_pergunta, ordem_pergunta, disposicao)
+           VALUES (?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             ordem_pergunta = VALUES(ordem_pergunta),
+             disposicao = VALUES(disposicao),
+             ativo = TRUE`,
+          [id, item.id, item.ordem, item.disposicao]
         );
       }
     }
@@ -1063,7 +1094,8 @@ export const getQuestionnaireQuestions = async (req, res) => {
               p.descricao AS description,
               p.tipo_pergunta AS question_type,
               p.opcoes AS options,
-              qq.ordem_pergunta AS question_order
+              qq.ordem_pergunta AS question_order,
+              qq.disposicao AS layout
        FROM perguntas p
        JOIN questoes_questionarios qq ON p.id = qq.id_pergunta
        WHERE qq.id_questionario = ?
@@ -1109,7 +1141,8 @@ export const saveQuestionnaireResponse = async (req, res) => {
               p.descricao,
               p.tipo_pergunta,
               p.opcoes,
-              qq.ordem_pergunta
+              qq.ordem_pergunta,
+              qq.disposicao
        FROM perguntas p
        JOIN questoes_questionarios qq ON p.id = qq.id_pergunta
        WHERE qq.id_questionario = ?

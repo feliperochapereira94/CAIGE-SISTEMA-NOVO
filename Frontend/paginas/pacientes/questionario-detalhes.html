@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../../recursos/css/layout.css" />
   <link rel="stylesheet" href="../../recursos/css/responsive.css" />
   <link rel="stylesheet" href="../../recursos/css/paginas/prontuarios.css" />
+  <link rel="stylesheet" href="../../recursos/css/paginas/prontuario-documento.css" />
   <script src="../../recursos/js/text-normalizer.js"></script>
 </head>
 <body data-page-title="Prontuários Cadastrados"
@@ -386,7 +387,8 @@
           if (!pickerState[key]) {
             pickerState[key] = {
               checked: false,
-              order: index + 1
+              order: index + 1,
+              layout: 'automatico'
             };
           }
         });
@@ -445,7 +447,7 @@
 
       picker.innerHTML = questions.map((question) => {
         const key = String(question.id);
-        const state = pickerState[key] || { checked: false, order: 1 };
+        const state = pickerState[key] || { checked: false, order: 1, layout: 'automatico' };
         const linkedCourses = parseQuestionCourseIds(question);
         const sharingLabel = linkedCourses.length > 1
           ? `Compartilhada com ${linkedCourses.length} cursos`
@@ -474,6 +476,15 @@
                 data-order-question="${question.id}"
                 ${state.checked ? '' : 'disabled'} />
             </label>
+
+            <label class="prontuario-question-row__layout">
+              <span>Disposição</span>
+              <select data-layout-question="${question.id}" ${state.checked ? '' : 'disabled'}>
+                <option value="automatico" ${state.layout === 'automatico' ? 'selected' : ''}>Automática</option>
+                <option value="linha_inteira" ${state.layout === 'linha_inteira' ? 'selected' : ''}>Linha inteira</option>
+                <option value="lado_a_lado" ${state.layout === 'lado_a_lado' ? 'selected' : ''}>Lado a lado</option>
+              </select>
+            </label>
           </article>
         `;
       }).join('');
@@ -485,11 +496,12 @@
       picker.querySelectorAll('[data-check-question]').forEach((checkbox) => {
         checkbox.addEventListener('change', () => {
           const id = checkbox.getAttribute('data-check-question');
-          const current = pickerState[id] || { checked: false, order: 1 };
+          const current = pickerState[id] || { checked: false, order: 1, layout: 'automatico' };
 
           pickerState[id] = {
             checked: checkbox.checked,
-            order: Number(current.order) || 1
+            order: Number(current.order) || 1,
+            layout: current.layout || 'automatico'
           };
 
           if (document.getElementById('question-picker-selected-only').checked) {
@@ -499,9 +511,11 @@
 
           const row = checkbox.closest('.prontuario-question-row');
           const orderInput = row.querySelector('[data-order-question]');
+          const layoutSelect = row.querySelector('[data-layout-question]');
 
           row.setAttribute('data-selected', checkbox.checked ? 'true' : 'false');
           orderInput.disabled = !checkbox.checked;
+          layoutSelect.disabled = !checkbox.checked;
           updateSelectedQuestionsCount();
         });
       });
@@ -509,12 +523,21 @@
       picker.querySelectorAll('[data-order-question]').forEach((input) => {
         input.addEventListener('input', () => {
           const id = input.getAttribute('data-order-question');
-          const current = pickerState[id] || { checked: false, order: 1 };
+          const current = pickerState[id] || { checked: false, order: 1, layout: 'automatico' };
 
           pickerState[id] = {
             checked: current.checked,
-            order: Math.max(1, Number(input.value) || 1)
+            order: Math.max(1, Number(input.value) || 1),
+            layout: current.layout || 'automatico'
           };
+        });
+      });
+
+      picker.querySelectorAll('[data-layout-question]').forEach((select) => {
+        select.addEventListener('change', () => {
+          const id = select.getAttribute('data-layout-question');
+          const current = pickerState[id] || { checked: false, order: 1, layout: 'automatico' };
+          pickerState[id] = { ...current, layout: select.value || 'automatico' };
         });
       });
     }
@@ -623,7 +646,8 @@
         selectedQuestions.forEach((question, index) => {
           pickerState[String(question.id)] = {
             checked: true,
-            order: Number(question.question_order) || index + 1
+            order: Number(question.question_order) || index + 1,
+            layout: question.layout || 'automatico'
           };
         });
 
@@ -775,6 +799,130 @@
       `;
     }
 
+    function formatQuestionType(type) {
+      const labels = {
+        texto_livre: 'Texto livre',
+        multipla_escolha: 'Múltipla escolha',
+        sim_nao: 'Sim / Não',
+        escala: 'Escala'
+      };
+      return labels[String(type || '').toLowerCase()] || 'Pergunta';
+    }
+
+    function obterClasseDisposicaoPreview(question) {
+      const layout = question.layout || 'automatico';
+      const type = question.question_type || 'texto_livre';
+      const larguraInteira = layout === 'linha_inteira' ||
+        (layout === 'automatico' && type === 'texto_livre');
+      return larguraInteira ? 'prontuario-documento__pergunta--larga' : '';
+    }
+
+    function renderQuestionPreview(question, index) {
+      const type = question.question_type || 'texto_livre';
+      let answerPreview = '';
+
+      if (type === 'sim_nao') {
+        answerPreview = `<div class="prontuario-documento__opcoes">
+          <span class="prontuario-documento__opcao"><span class="prontuario-documento__marcador"></span><span>Sim</span></span>
+          <span class="prontuario-documento__opcao"><span class="prontuario-documento__marcador"></span><span>Não</span></span>
+        </div>`;
+      } else if (type === 'escala') {
+        answerPreview = `<div class="prontuario-documento__escala">${[1,2,3,4,5].map(v =>
+          `<span class="prontuario-documento__escala-item">${v}</span>`).join('')}</div>`;
+      } else if (type === 'multipla_escolha') {
+        let options = question.options || [];
+        if (typeof options === 'string') { try { options = JSON.parse(options); } catch (_) { options = []; } }
+        if (!Array.isArray(options) && options?.options) options = options.options;
+        answerPreview = `<div class="prontuario-documento__opcoes">${(Array.isArray(options) ? options : []).map(option =>
+          `<span class="prontuario-documento__opcao"><span class="prontuario-documento__marcador"></span><span>${escapeHtml(option)}</span></span>`).join('')}</div>`;
+      } else {
+        answerPreview = '<div class="prontuario-documento__resposta-texto prontuario-preview__placeholder">Campo de resposta do profissional</div>';
+      }
+
+      return `<section class="prontuario-documento__pergunta ${obterClasseDisposicaoPreview(question)}">
+        <div class="prontuario-documento__pergunta-cabecalho">
+          <span class="prontuario-documento__numero">${String(index + 1).padStart(2,'0')}</span>
+          <div><h3>${escapeHtml(question.title || question.titulo || 'Pergunta')}</h3>
+          ${question.description || question.descricao ? `<p class="prontuario-preview__descricao">${escapeHtml(question.description || question.descricao)}</p>` : ''}</div>
+        </div>
+        ${answerPreview}
+      </section>`;
+    }
+
+    async function previewQuestionnaire(questionnaire) {
+      try {
+        const response = await fetch(
+          `${API_BASE}/questionarios/${encodeURIComponent(questionnaire.id)}/perguntas`,
+          { headers: { 'x-user-email': userEmail } }
+        );
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.message || 'Falha ao carregar as perguntas do prontuário');
+        }
+
+        const questions = await response.json();
+        const courseName = questionnaire.course_name ||
+          cursos.find((course) => Number(course.id) === Number(questionnaire.idCurso))?.nome ||
+          `Curso ${questionnaire.idCurso}`;
+
+        document.getElementById('questionnaire-preview-modal')?.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'questionnaire-preview-modal';
+        modal.className = 'modal active';
+        modal.setAttribute('aria-hidden', 'false');
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'questionnaire-preview-title');
+        modal.innerHTML = `
+          <div class="modal__content modal__content--large">
+            <div class="modal__header">
+              <h3 class="modal__title" id="questionnaire-preview-title">Visualizar Prontuário</h3>
+              <button type="button" class="modal__close" data-preview-close aria-label="Fechar">×</button>
+            </div>
+            <div class="modal__body">
+              <section class="modal-section">
+                <h4 class="modal-section__title">${escapeHtml(questionnaire.title || 'Prontuário')}</h4>
+                <p>${escapeHtml(questionnaire.description || 'Sem descrição')}</p>
+                <p><strong>Curso:</strong> ${escapeHtml(courseName)}</p>
+                <p><strong>Status:</strong> ${questionnaire.is_published ? 'Publicado' : 'Rascunho'}</p>
+              </section>
+              <section class="modal-section">
+                <h4 class="modal-section__title">Perguntas (${questions.length})</h4>
+                <div class="prontuario-documento__perguntas">
+                  ${questions.length
+                    ? questions.map(renderQuestionPreview).join('')
+                    : '<div class="empty-state"><p>Este prontuário não possui perguntas.</p></div>'}
+                </div>
+              </section>
+            </div>
+            <div class="modal__form-actions">
+              <button type="button" class="modal__btn modal__btn--secondary modal__close" data-preview-close>Fechar</button>
+            </div>
+          </div>`;
+
+        const close = () => {
+          document.removeEventListener('keydown', onKeydown);
+          modal.remove();
+        };
+        const onKeydown = (event) => {
+          if (event.key === 'Escape') close();
+        };
+
+        modal.querySelectorAll('[data-preview-close]').forEach((button) => button.addEventListener('click', close));
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) close();
+        });
+        document.addEventListener('keydown', onKeydown);
+        document.body.appendChild(modal);
+        modal.querySelector('[data-preview-close]')?.focus();
+      } catch (error) {
+        console.error(error);
+        notify.error(error.message || 'Erro ao visualizar prontuário');
+      }
+    }
+
     function bindQuestionnaireListEvents(container) {
       container.querySelectorAll('.prontuario-course-group').forEach((groupEl, index) => {
         const courseId = groupEl.getAttribute('data-course-group');
@@ -802,6 +950,10 @@
           }
 
           const actions = [
+            {
+              rotulo: 'Visualizar',
+              acao: () => previewQuestionnaire(questionnaire)
+            },
             {
               rotulo: 'Editar',
               acao: () => startEditQuestionnaire(questionnaire)
@@ -955,7 +1107,8 @@
             .filter(([, state]) => state.checked)
             .map(([id, state]) => ({
               id: Number(id),
-              order: Number(state.order) || 9999
+              order: Number(state.order) || 9999,
+              layout: state.layout || 'automatico'
             }))
             .sort((a, b) => a.order - b.order);
 
@@ -968,7 +1121,7 @@
             title: document.getElementById('questionnaire-title').value.trim(),
             description: document.getElementById('questionnaire-description').value.trim(),
             idCurso: courseId,
-            questions: selected.map((item) => item.id)
+            questions: selected.map((item) => ({ id: item.id, disposicao: item.layout }))
           };
 
           if (editingQuestionnaireId) {

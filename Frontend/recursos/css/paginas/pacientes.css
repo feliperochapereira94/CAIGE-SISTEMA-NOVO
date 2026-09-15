@@ -2722,3 +2722,263 @@ body[data-page-title="Perfil do Paciente"] .profile-desktop-column {
         margin-top: auto;
     }
 }
+
+/* =========================================================
+   HOTFIX MOBILE V1 - LISTA DE PACIENTES EM CARDS INDEPENDENTES
+   Desktop permanece inalterado.
+   ========================================================= */
+@media (max-width: 767px) {
+    .pacientes-list.card.admin-list.surface-primary {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    .pacientes-list .pacientes-table-wrap.admin-list__body {
+        flex: 0 0 auto;
+        max-height: none;
+        padding: 0;
+        overflow: visible;
+        background: transparent;
+    }
+
+    .pacientes-table,
+    .pacientes-table tbody {
+        gap: 9px;
+    }
+
+    .pacientes-table tbody tr.paciente-row {
+        grid-template-columns: 44px minmax(0, 1fr) auto auto;
+        grid-template-areas:
+            "avatar name status actions"
+            "avatar details details details";
+        min-height: 72px;
+        padding: 11px 11px;
+        column-gap: 9px;
+        row-gap: 3px;
+        background: var(--surface);
+        border: 1px solid var(--border-default);
+        border-left: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xs);
+    }
+
+    .paciente-name-cell {
+        display: contents;
+    }
+
+    .paciente-cell {
+        display: contents;
+    }
+
+    .paciente-avatar {
+        grid-area: avatar;
+        width: 42px;
+        height: 42px;
+        align-self: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--blue-50);
+        border: 1px solid var(--blue-100);
+        color: var(--blue-700);
+        font-size: 13px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: .02em;
+    }
+
+    .paciente-info {
+        grid-area: name;
+        min-width: 0;
+        align-self: center;
+    }
+
+    .paciente-name {
+        display: block;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    .paciente-meta-cell {
+        padding-top: 1px;
+    }
+
+    .paciente-meta-mobile {
+        font-size: 12px;
+        gap: 5px;
+    }
+
+    .paciente-status-cell .status-pill {
+        padding: 3px 7px;
+        font-size: var(--fonte-badge);
+    }
+
+    .paciente-actions-toggle {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        background: transparent;
+        border-color: transparent;
+    }
+}
+
+
+/* =========================================================
+   HOTFIX MOBILE V2 - CONTRASTE DOS CARDS DE PACIENTE
+   Mantém o avatar e a composição aprovada, reforçando a
+   separação entre cada paciente e o fundo da página.
+   ========================================================= */
+@media (max-width: 767px) {
+    .pacientes-table tbody {
+        gap: 10px;
+    }
+
+    .pacientes-table tbody tr.paciente-row {
+        background: #ffffff;
+        border-color: #d8e0ec;
+        box-shadow:
+            0 3px 10px rgba(15, 23, 42, 0.08),
+            0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .paciente-avatar {
+        background: #eaf2ff;
+        border-color: #cfe0ff;
+        color: var(--blue-700);
+        box-shadow: inset 0 0 0 1px rgba(31, 96, 232, 0.03);
+    }
+
+    .paciente-actions-toggle {
+        color: var(--blue-700);
+    }
+}
+
+
+/* =========================================================
+   HOTFIX - AVATAR EXCLUSIVO DO MOBILE
+   Impede que as iniciais adicionadas aos cards mobile
+   interfiram na tabela de pacientes em tablet/desktop.
+   ========================================================= */
+@media (min-width: 768px) {
+    .paciente-avatar {
+        display: none !important;
+    }
+
+    .paciente-cell {
+        display: table-cell;
+    }
+
+    .paciente-cell .paciente-main {
+        display: inline;
+    }
+}
+
+
+/* =========================================================
+   REFINAMENTO DESKTOP - ALINHAMENTO SEMÂNTICO DA GRID
+   Texto descritivo à esquerda; dados compactos ao centro.
+   ========================================================= */
+@media (min-width: 768px) {
+    .paciente-cell {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .paciente-name-cell,
+    .paciente-address-cell {
+        text-align: left !important;
+    }
+
+    .paciente-name-cell {
+        padding-left: 16px;
+    }
+
+    .paciente-address-cell {
+        padding-left: 18px;
+    }
+
+    .paciente-address-text {
+        display: block;
+        text-align: left;
+    }
+
+    .pacientes-table th:nth-child(2),
+    .pacientes-table th:nth-child(3) {
+        text-align: left;
+    }
+
+    .pacientes-table th:nth-child(2) {
+        padding-left: 16px;
+    }
+
+    .pacientes-table th:nth-child(3) {
+        padding-left: 18px;
+    }
+
+    .pacientes-table th:nth-child(1),
+    .pacientes-table td:nth-child(1),
+    .pacientes-table th:nth-child(4),
+    .pacientes-table td:nth-child(4),
+    .pacientes-table th:nth-child(6),
+    .pacientes-table td:nth-child(6),
+    .pacientes-table th:nth-child(7),
+    .pacientes-table td:nth-child(7) {
+        text-align: center;
+    }
+}
+
+
+/* =========================================================
+   REFINAMENTO DESKTOP - GRID DE PACIENTES MAIS COMPACTA
+   Reduz apenas espaçamento vertical; preserva tipografia
+   e área de toque dos cards no mobile.
+   ========================================================= */
+@media (min-width: 768px) {
+    .pacientes-table th {
+        padding-top: 9px;
+        padding-bottom: 9px;
+    }
+
+    .pacientes-table td {
+        padding-top: 7px;
+        padding-bottom: 7px;
+        height: 44px;
+    }
+
+    .pacientes-table .actions-toggle,
+    .pacientes-table .paciente-actions-toggle,
+    .pacientes-table .menu-acoes-trigger {
+        min-width: 34px;
+        width: 34px;
+        min-height: 34px;
+        height: 34px;
+        padding: 0;
+    }
+}
+
+
+/* =========================================================
+   PACIENTES - ADESÃO À DENSIDADE GLOBAL DE GRID
+   Remove a altura específica do hotfix anterior no desktop.
+   ========================================================= */
+@media (min-width: 768px) {
+    .pacientes-table td {
+        height: auto;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .pacientes-table th {
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+}

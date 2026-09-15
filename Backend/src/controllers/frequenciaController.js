@@ -78,40 +78,14 @@ function contarOcorrenciasGrade(inicio, fim, diaSemana) {
 }
 
 async function montarCalendarioFrequencia(filtros = {}) {
-  if (filtros.idProfissional) {
-    return {
-      disponivel: false,
-      motivo: 'O calendário simplificado não diferencia profissionais.',
-      datasPrevistas: [],
-      periodos: []
-    };
-  }
+  const idsAtividadesEscopo = [...new Set(
+    (Array.isArray(filtros.idsAtividadesEscopo) ? filtros.idsAtividadesEscopo : [])
+      .map((id) => Number(id))
+      .filter(Boolean)
+  )];
 
-  let idCursoAlvo = filtros.idCurso || filtros.idCursoUsuario || null;
-  let atividade = null;
-
-  if (filtros.idAtividade) {
-    const [atividades] = await pool.query(
-      'SELECT id, id_curso AS idCurso, nome FROM atividades_atendimento WHERE id = ? AND ativo = TRUE',
-      [filtros.idAtividade]
-    );
-    atividade = atividades[0] || null;
-    if (!atividade) {
-      return { disponivel: false, motivo: 'Atividade não encontrada.', datasPrevistas: [], periodos: [] };
-    }
-    if (idCursoAlvo && Number(idCursoAlvo) !== Number(atividade.idCurso)) {
-      return { disponivel: false, motivo: 'A atividade não pertence ao curso selecionado.', datasPrevistas: [], periodos: [] };
-    }
-    idCursoAlvo = Number(atividade.idCurso);
-  }
-
-  if (!idCursoAlvo) {
-    return {
-      disponivel: false,
-      motivo: 'Selecione um curso ou uma atividade para calcular a frequência.',
-      datasPrevistas: [],
-      periodos: []
-    };
+  if (filtros.idAtividade && !idsAtividadesEscopo.includes(Number(filtros.idAtividade))) {
+    idsAtividadesEscopo.push(Number(filtros.idAtividade));
   }
 
   const [periodos] = await pool.query(
@@ -129,50 +103,91 @@ async function montarCalendarioFrequencia(filtros = {}) {
   if (!periodos.length) {
     return {
       disponivel: false,
-      motivo: 'Não existe semestre ativo ou encerrado cobrindo o período informado.',
+      motivo: 'Não há calendário de frequência configurado para o período selecionado.',
       datasPrevistas: [],
+      datasPrevistasPorAtividade: {},
       periodos: []
     };
   }
 
-  const idsPeriodos = periodos.map((periodo) => periodo.id);
-  const marcadores = idsPeriodos.map(() => '?').join(', ');
-  const parametros = [...idsPeriodos, idCursoAlvo];
-  let consultaGrade = `SELECT id, id_periodo AS idPeriodo, id_curso AS idCurso,
-                              id_atividade AS idAtividade, dia_semana AS diaSemana
-                         FROM grade_periodo_letivo
-                        WHERE id_periodo IN (${marcadores})
-                          AND id_curso = ?`;
-
-  if (filtros.idAtividade) {
-    consultaGrade += ' AND (id_atividade = ? OR id_atividade IS NULL)';
-    parametros.push(filtros.idAtividade);
-  } else {
-    consultaGrade += ' AND id_atividade IS NULL';
+  // Sem participação e sem atividade específica não há uma grade individual a
+  // validar. O relatório pode retornar vazio sem inventar um calendário global.
+  if (!idsAtividadesEscopo.length) {
+    return {
+      disponivel: true,
+      motivo: null,
+      datasPrevistas: [],
+      datasPrevistasPorAtividade: {},
+      periodos,
+      escopo: filtros.idCurso || filtros.idCursoUsuario ? 'CURSO' : 'TODOS_CURSOS'
+    };
   }
 
-  consultaGrade += ' ORDER BY id_periodo, dia_semana';
-  const [gradeCandidata] = await pool.query(consultaGrade, parametros);
+  const marcadoresAtividades = idsAtividadesEscopo.map(() => '?').join(', ');
+  const parametrosAtividades = [...idsAtividadesEscopo];
+  let consultaAtividades = `SELECT id, id_curso AS idCurso, nome
+                              FROM atividades_atendimento
+                             WHERE ativo = TRUE
+                               AND id IN (${marcadoresAtividades})`;
+  const idCursoAlvo = filtros.idCurso || filtros.idCursoUsuario || null;
+  if (idCursoAlvo) {
+    consultaAtividades += ' AND id_curso = ?';
+    parametrosAtividades.push(idCursoAlvo);
+  }
+  const [atividades] = await pool.query(consultaAtividades, parametrosAtividades);
 
-  const gradeSelecionada = [];
-  periodos.forEach((periodo) => {
-    const linhasPeriodo = gradeCandidata.filter((linha) => Number(linha.idPeriodo) === Number(periodo.id));
-    if (filtros.idAtividade) {
-      const especificas = linhasPeriodo.filter((linha) => Number(linha.idAtividade) === Number(filtros.idAtividade));
-      gradeSelecionada.push(...(especificas.length ? especificas : linhasPeriodo.filter((linha) => !linha.idAtividade)));
-    } else {
-      gradeSelecionada.push(...linhasPeriodo);
-    }
-  });
-
-  if (!gradeSelecionada.length) {
+  if (atividades.length !== idsAtividadesEscopo.length) {
     return {
       disponivel: false,
-      motivo: filtros.idAtividade
-        ? 'A atividade selecionada ainda não possui dias configurados neste semestre.'
-        : 'O curso selecionado ainda não possui dias gerais configurados neste semestre.',
+      motivo: 'Uma ou mais atividades do filtro não foram encontradas ou não pertencem ao curso selecionado.',
       datasPrevistas: [],
+      datasPrevistasPorAtividade: {},
       periodos
+    };
+  }
+
+  const idsPeriodos = periodos.map((periodo) => Number(periodo.id));
+  const marcadoresPeriodos = idsPeriodos.map(() => '?').join(', ');
+  const [grades] = await pool.query(
+    `SELECT id, id_periodo AS idPeriodo, id_curso AS idCurso,
+            id_atividade AS idAtividade, dia_semana AS diaSemana
+       FROM grade_periodo_letivo
+      WHERE id_periodo IN (${marcadoresPeriodos})
+        AND id_atividade IN (${marcadoresAtividades})
+      ORDER BY id_periodo, id_atividade, dia_semana`,
+    [...idsPeriodos, ...idsAtividadesEscopo]
+  );
+
+  const configuracoesAusentes = [];
+  atividades.forEach((atividade) => {
+    periodos.forEach((periodo) => {
+      const inicio = maiorData(filtros.dataInicio, normalizarDataIso(periodo.dataInicio));
+      const fim = menorData(filtros.dataFim, normalizarDataIso(periodo.dataFim));
+      if (!inicio || !fim || inicio > fim) return;
+
+      const possuiGrade = grades.some((grade) =>
+        Number(grade.idPeriodo) === Number(periodo.id) &&
+        Number(grade.idAtividade) === Number(atividade.id)
+      );
+      if (!possuiGrade) {
+        configuracoesAusentes.push({ atividade, periodo });
+      }
+    });
+  });
+
+  if (configuracoesAusentes.length) {
+    const nomes = [...new Set(configuracoesAusentes.map((item) => item.atividade.nome))];
+    const exibidos = nomes.slice(0, 3).map((nome) => `“${nome}”`).join(', ');
+    const restante = nomes.length > 3 ? ` e mais ${nomes.length - 3}` : '';
+    return {
+      disponivel: false,
+      motivo: nomes.length === 1
+        ? `A atividade ${exibidos} não possui dias de atendimento cadastrados no calendário de frequência para o período selecionado.`
+        : `Existem atividades sem dias de atendimento cadastrados no calendário de frequência: ${exibidos}${restante}.`,
+      datasPrevistas: [],
+      datasPrevistasPorAtividade: {},
+      periodos,
+      atividadesSemCalendario: nomes
     };
   }
 
@@ -180,43 +195,160 @@ async function montarCalendarioFrequencia(filtros = {}) {
     `SELECT id_periodo AS idPeriodo, id_grade AS idGrade,
             DATE_FORMAT(data, '%Y-%m-%d') AS data
        FROM excecoes_periodo_letivo
-      WHERE id_periodo IN (${marcadores})`,
+      WHERE id_periodo IN (${marcadoresPeriodos})`,
     idsPeriodos
   );
-
   const excecoesGerais = new Set(
     excecoes.filter((item) => !item.idGrade).map((item) => `${item.idPeriodo}|${item.data}`)
   );
   const excecoesEspecificas = new Set(
     excecoes.filter((item) => item.idGrade).map((item) => `${item.idGrade}|${item.data}`)
   );
-  const datasPrevistas = new Set();
 
-  gradeSelecionada.forEach((grade) => {
+  const datasPrevistasPorAtividade = {};
+  const todasDatas = new Set();
+  idsAtividadesEscopo.forEach((id) => { datasPrevistasPorAtividade[id] = new Set(); });
+
+  grades.forEach((grade) => {
     const periodo = periodos.find((item) => Number(item.id) === Number(grade.idPeriodo));
     if (!periodo) return;
-
     const inicio = maiorData(filtros.dataInicio, normalizarDataIso(periodo.dataInicio));
     const fim = menorData(filtros.dataFim, normalizarDataIso(periodo.dataFim));
 
     contarOcorrenciasGrade(inicio, fim, grade.diaSemana).forEach((dataOcorrencia) => {
       if (excecoesGerais.has(`${periodo.id}|${dataOcorrencia}`)) return;
       if (excecoesEspecificas.has(`${grade.id}|${dataOcorrencia}`)) return;
-      datasPrevistas.add(dataOcorrencia);
+      datasPrevistasPorAtividade[grade.idAtividade]?.add(dataOcorrencia);
+      todasDatas.add(dataOcorrencia);
     });
   });
 
-  const datasOrdenadas = [...datasPrevistas].sort();
+  const serializado = Object.fromEntries(
+    Object.entries(datasPrevistasPorAtividade).map(([id, datas]) => [id, [...datas].sort()])
+  );
+
   return {
-    disponivel: datasOrdenadas.length > 0,
-    motivo: datasOrdenadas.length ? null : 'Não há encontros previstos válidos no intervalo selecionado.',
-    datasPrevistas: datasOrdenadas,
+    disponivel: true,
+    motivo: null,
+    datasPrevistas: [...todasDatas].sort(),
+    datasPrevistasPorAtividade: serializado,
     periodos,
-    escopo: filtros.idAtividade ? 'ATIVIDADE' : 'CURSO',
-    idCurso: Number(idCursoAlvo),
-    idAtividade: filtros.idAtividade || null,
-    atividade: atividade?.nome || null
+    escopo: filtros.idAtividade ? 'ATIVIDADE' : (idCursoAlvo ? 'CURSO' : 'TODOS_CURSOS'),
+    idCurso: idCursoAlvo ? Number(idCursoAlvo) : null,
+    idAtividade: filtros.idAtividade || null
   };
+}
+
+async function existePeriodoLetivoNoIntervalo(dataInicio, dataFim) {
+  const [periodos] = await pool.query(
+    `SELECT id
+       FROM periodos_letivos
+      WHERE data_inicio <= ?
+        AND data_fim >= ?
+        AND status IN ('ATIVO','ENCERRADO')
+      LIMIT 1`,
+    [dataFim, dataInicio]
+  );
+  return periodos.length > 0;
+}
+
+async function validarDataRegistroFrequencia(conn, atividade) {
+  // Usa a data do próprio MySQL para evitar divergência de fuso entre navegador,
+  // Node e servidor de banco.
+  const [[relogio]] = await conn.query(
+    `SELECT DATE_FORMAT(CURDATE(), '%Y-%m-%d') AS dataAtual,
+            WEEKDAY(CURDATE()) + 1 AS diaSemana`
+  );
+
+  const [periodos] = await conn.query(
+    `SELECT id, ano, semestre, status
+       FROM periodos_letivos
+      WHERE CURDATE() BETWEEN data_inicio AND data_fim
+      ORDER BY FIELD(status, 'ATIVO', 'PLANEJADO', 'ENCERRADO'), data_inicio DESC
+      LIMIT 1`
+  );
+
+  if (!periodos.length) {
+    return {
+      valido: false,
+      statusHttp: 409,
+      codigo: 'CALENDARIO_INEXISTENTE',
+      mensagem: 'Não há calendário de frequência configurado para a data de hoje. Cadastre e ative um semestre no Painel de Gerenciamento antes de registrar presença.'
+    };
+  }
+
+  const periodo = periodos[0];
+  if (periodo.status !== 'ATIVO') {
+    return {
+      valido: false,
+      statusHttp: 409,
+      codigo: 'SEMESTRE_NAO_ATIVO',
+      mensagem: periodo.status === 'ENCERRADO'
+        ? 'O semestre correspondente à data de hoje está encerrado e não aceita novos registros de presença.'
+        : 'O semestre correspondente à data de hoje ainda está planejado. Ative o semestre antes de registrar presença.'
+    };
+  }
+
+  // A atividade precisa possuir seus próprios dias de atendimento.
+  // Não há herança/fallback da grade geral do curso para registrar presença.
+  const [gradeAtividade] = await conn.query(
+    `SELECT id, id_atividade AS idAtividade, dia_semana AS diaSemana
+       FROM grade_periodo_letivo
+      WHERE id_periodo = ?
+        AND id_curso = ?
+        AND id_atividade = ?
+      ORDER BY dia_semana`,
+    [periodo.id, atividade.idCurso, atividade.id]
+  );
+
+  if (!gradeAtividade.length) {
+    return {
+      valido: false,
+      statusHttp: 409,
+      codigo: 'ATIVIDADE_SEM_DIAS',
+      mensagem: `A atividade "${atividade.atividade}" não possui dias de atendimento cadastrados no calendário de frequência. Configure o calendário antes de registrar presença.`
+    };
+  }
+
+  const aplicaveis = gradeAtividade.filter(
+    (item) => Number(item.diaSemana) === Number(relogio.diaSemana)
+  );
+
+  if (!aplicaveis.length) {
+    return {
+      valido: false,
+      statusHttp: 409,
+      codigo: 'DIA_NAO_CONFIGURADO',
+      mensagem: `A atividade "${atividade.atividade}" não está programada para atendimento hoje. Verifique os dias cadastrados no calendário de frequência do semestre ${periodo.ano}/${periodo.semestre}.`
+    };
+  }
+
+  const idsGrade = aplicaveis.map((item) => item.id);
+  const [excecoes] = await conn.query(
+    `SELECT id_grade AS idGrade
+       FROM excecoes_periodo_letivo
+      WHERE id_periodo = ?
+        AND data = CURDATE()
+        AND (id_grade IS NULL OR id_grade IN (?))`,
+    [periodo.id, idsGrade]
+  );
+
+  const excecaoGeral = excecoes.some((item) => item.idGrade === null);
+  const gradesBloqueadas = new Set(
+    excecoes.filter((item) => item.idGrade !== null).map((item) => Number(item.idGrade))
+  );
+  const possuiGradeValida = aplicaveis.some((item) => !gradesBloqueadas.has(Number(item.id)));
+
+  if (excecaoGeral || !possuiGradeValida) {
+    return {
+      valido: false,
+      statusHttp: 409,
+      codigo: 'DATA_SEM_ATENDIMENTO',
+      mensagem: `Não é possível registrar presença em ${relogio.dataAtual}. A data está marcada como sem atendimento no calendário de frequência.`
+    };
+  }
+
+  return { valido: true, periodo, dataAtual: relogio.dataAtual };
 }
 
 export const frequenciaController = {
@@ -286,6 +418,14 @@ export const frequenciaController = {
       if (!dataInicio || !dataFim) return res.status(400).json({ message: 'Data inicial e final são obrigatórias' });
       if (dataInicio > dataFim) return res.status(400).json({ message: 'Data inicial não pode ser maior que a data final' });
 
+      const possuiPeriodoLetivo = await existePeriodoLetivoNoIntervalo(dataInicio, dataFim);
+      if (!possuiPeriodoLetivo) {
+        return res.status(409).json({
+          code: 'CALENDARIO_INEXISTENTE',
+          message: 'Não há calendário de frequência configurado para o período selecionado. Cadastre um semestre no Painel de Gerenciamento antes de gerar o relatório.'
+        });
+      }
+
       const idsPacientesRaw = req.query.ids_pacientes || req.query.patient_ids || '';
       let idsPacientes = [];
 
@@ -328,10 +468,21 @@ export const frequenciaController = {
         idCursoUsuario
       };
 
-      const [registros, calendario] = await Promise.all([
-        consultaFrequencias(filtrosBase),
-        montarCalendarioFrequencia(filtrosBase)
-      ]);
+      const registros = await consultaFrequencias(filtrosBase);
+      const idsAtividadesEscopo = idAtividade
+        ? [idAtividade]
+        : [...new Set(registros.map((registro) => Number(registro.idAtividade)).filter(Boolean))];
+      const calendario = await montarCalendarioFrequencia({
+        ...filtrosBase,
+        idsAtividadesEscopo
+      });
+
+      if (!calendario.disponivel) {
+        return res.status(409).json({
+          code: 'CALENDARIO_NAO_CONFIGURADO',
+          message: calendario.motivo || 'O calendário de frequência não está configurado para o filtro selecionado.'
+        });
+      }
 
       const agrupado = new Map();
       const garantirPaciente = (id, nome = '') => {
@@ -342,7 +493,9 @@ export const frequenciaController = {
             nomePaciente: nome || '',
             totalParticipacoes: 0,
             registros: [],
-            _datasPresenca: new Set()
+            _datasPresenca: new Set(),
+            _presencasAtividadeData: new Set(),
+            _idsAtividades: new Set()
           });
         } else if (nome && !agrupado.get(chave).nomePaciente) {
           agrupado.get(chave).nomePaciente = nome;
@@ -354,6 +507,10 @@ export const frequenciaController = {
         const item = garantirPaciente(registro.idPaciente, registro.paciente);
         item.totalParticipacoes += 1;
         item._datasPresenca.add(registro.data);
+        if (registro.idAtividade) {
+          item._idsAtividades.add(Number(registro.idAtividade));
+          item._presencasAtividadeData.add(`${Number(registro.idAtividade)}|${registro.data}`);
+        }
         item.registros.push({
           data: registro.data,
           horario: registro.horario || '',
@@ -376,18 +533,38 @@ export const frequenciaController = {
         pacientesSelecionados.forEach((paciente) => garantirPaciente(paciente.id, paciente.nome));
       }
 
-      const datasPrevistas = new Set(calendario.datasPrevistas || []);
+      const datasPrevistasPorAtividade = calendario.datasPrevistasPorAtividade || {};
       const report = [...agrupado.values()]
         .map((item) => {
+          const idsAtividadesPaciente = idAtividade
+            ? [Number(idAtividade)]
+            : [...item._idsAtividades];
+          const chavesPrevistas = new Set();
+
+          idsAtividadesPaciente.forEach((atividadeId) => {
+            (datasPrevistasPorAtividade[atividadeId] || []).forEach((data) => {
+              chavesPrevistas.add(`${Number(atividadeId)}|${data}`);
+            });
+          });
+
           const possuiParticipacaoNoFiltro = item.totalParticipacoes > 0;
-          const calculoFrequenciaDisponivel = calendario.disponivel && possuiParticipacaoNoFiltro;
-          const encontrosPrevistos = calculoFrequenciaDisponivel ? datasPrevistas.size : 0;
+          const calculoFrequenciaDisponivel = calendario.disponivel && possuiParticipacaoNoFiltro && chavesPrevistas.size > 0;
+          const encontrosPrevistos = calculoFrequenciaDisponivel ? chavesPrevistas.size : 0;
           const encontrosComPresenca = calculoFrequenciaDisponivel
-            ? [...item._datasPresenca].filter((data) => datasPrevistas.has(data)).length
+            ? [...item._presencasAtividadeData].filter((chave) => chavesPrevistas.has(chave)).length
             : 0;
           const percentualFrequencia = encontrosPrevistos > 0
             ? Number(((encontrosComPresenca / encontrosPrevistos) * 100).toFixed(1))
             : null;
+
+          const registrosClassificados = item.registros.map((registro) => {
+            const chave = registro.idAtividade ? `${Number(registro.idAtividade)}|${registro.data}` : null;
+            return { ...registro, compativelCalendario: Boolean(chave && chavesPrevistas.has(chave)) };
+          }).sort((a, b) => {
+            if (a.compativelCalendario !== b.compativelCalendario) return a.compativelCalendario ? -1 : 1;
+            return `${b.data} ${b.horario || ''}`.localeCompare(`${a.data} ${a.horario || ''}`);
+          });
+          const registrosIncompativeis = registrosClassificados.filter((registro) => !registro.compativelCalendario).length;
 
           return {
             idPaciente: item.idPaciente,
@@ -395,7 +572,8 @@ export const frequenciaController = {
             diasComPresenca: item._datasPresenca.size,
             totalParticipacoes: item.totalParticipacoes,
             datasPresenca: [...item._datasPresenca].sort(),
-            registros: item.registros,
+            registros: registrosClassificados,
+            registrosIncompativeis,
             encontrosPrevistos,
             encontrosComPresenca,
             faltas: calculoFrequenciaDisponivel ? Math.max(0, encontrosPrevistos - encontrosComPresenca) : 0,
@@ -418,7 +596,8 @@ export const frequenciaController = {
           available: calendario.disponivel === true,
           reason: calendario.motivo || null,
           scope: calendario.escopo || null,
-          expected_dates: calendario.datasPrevistas || []
+          expected_dates: calendario.datasPrevistas || [],
+          expected_dates_by_activity: calendario.datasPrevistasPorAtividade || {}
         },
         report
       });
@@ -473,11 +652,6 @@ export const frequenciaController = {
 
       // Deduplicar IDs dentro da requisição
       const idsUnicos = [...new Set(idsNormalizados)];
-
-      // Limite máximo aprovado: até 50 pacientes por operação
-      if (idsUnicos.length > 50) {
-        return res.status(400).json({ message: 'É possível registrar frequência para até 50 pacientes por vez' });
-      }
 
       const idAtividade = parsePositiveInt(req.body.idAtividade);
       const idProfissional = parsePositiveInt(req.body.idProfissional);
@@ -556,7 +730,21 @@ export const frequenciaController = {
           return res.status(403).json({ message: 'O profissional selecionado não pertence ao seu curso' });
         }
 
-        // 5. Inserir em lote na tabela frequencia com timestamp compartilhado
+        // 5. Regra obrigatória do calendário: semestre ativo + dia previsto + sem exceção.
+        const validacaoCalendario = await validarDataRegistroFrequencia(conn, {
+          id: idAtividade,
+          idCurso: atividade.idCurso,
+          atividade: atividade.atividade
+        });
+        if (!validacaoCalendario.valido) {
+          await conn.rollback();
+          return res.status(validacaoCalendario.statusHttp || 409).json({
+            code: validacaoCalendario.codigo || 'CALENDARIO_INVALIDO',
+            message: validacaoCalendario.mensagem
+          });
+        }
+
+        // 6. Inserir em lote na tabela frequencia com timestamp compartilhado
         const agora = new Date();
         const observacaoTexto = req.body.observacao || req.body.observacoes || null;
 
@@ -579,7 +767,7 @@ export const frequenciaController = {
           idsGerados.push(resultadoInsert.insertId + i);
         }
 
-        // 6. Inserir movimentações transacionais para cada paciente
+        // 7. Inserir movimentações transacionais para cada paciente
         const mapaNomes = new Map(pacientes.map(p => [Number(p.id), p.nome]));
         for (const idPac of idsUnicos) {
           const nomePac = mapaNomes.get(idPac) || 'Paciente';
@@ -595,7 +783,7 @@ export const frequenciaController = {
 
         await conn.commit();
 
-        // 7. Resposta estruturada
+        // 8. Resposta estruturada
         const resposta = {
           sucesso: true,
           totalRegistrados,

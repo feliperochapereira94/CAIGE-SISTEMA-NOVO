@@ -4965,3 +4965,383 @@ textarea.is-invalid:focus,
     }
 }
 
+
+/* =========================================================
+   HOTFIX MOBILE V1 - PAGINAÇÃO CANÔNICA
+   No celular a quantidade por página fica fixa pelo componente.
+   Mantém apenas anterior/próxima e o resumo, em barra própria.
+   ========================================================= */
+@media (max-width: 767px) {
+    .pagination-bar--integrated {
+        width: 100%;
+        min-height: 48px;
+        margin-top: 10px;
+        padding: 7px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xs);
+    }
+
+    .pagination-bar--integrated > .pagination-page-size {
+        display: none !important;
+    }
+
+    .pagination-bar--integrated .pagination-navigation {
+        width: 100%;
+        flex: 1 1 auto;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .pagination-bar--integrated .pagination-nav-button {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+    }
+
+    .pagination-bar--integrated .pagination-nav-button:first-child,
+    .pagination-bar--integrated .pagination-nav-button:last-child {
+        display: none;
+    }
+
+    .pagination-bar--integrated .pagination-page-info {
+        min-width: 118px;
+        margin: 0 4px;
+        font-size: 12px;
+        text-align: center;
+    }
+}
+
+
+/* =========================================================
+   HOTFIX MOBILE V2 - PAGINAÇÃO COMPACTA
+   Recupera a escolha de registros por página no celular,
+   mantendo seletor compacto à esquerda e navegação à direita.
+   ========================================================= */
+@media (max-width: 767px) {
+    .pagination-bar--integrated {
+        min-height: 50px;
+        padding: 7px 9px;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .pagination-bar--integrated > .pagination-page-size {
+        display: inline-flex !important;
+        flex: 0 0 auto;
+        margin-right: 0;
+    }
+
+    .pagination-bar--integrated .pagination-page-size-picker {
+        display: none !important;
+    }
+
+    .pagination-bar--integrated .pagination-page-size__native {
+        display: block !important;
+        width: 86px;
+        min-width: 86px;
+        height: 34px;
+        min-height: 34px;
+        padding: 4px 20px 4px 7px;
+        font-size: 11px;
+        font-weight: 600;
+        background: var(--surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-xs);
+    }
+
+    .pagination-bar--integrated .pagination-navigation {
+        width: auto;
+        flex: 0 1 auto;
+        margin-left: auto;
+        justify-content: flex-end;
+        gap: 3px;
+    }
+
+    .pagination-bar--integrated .pagination-nav-button {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+    }
+
+    .pagination-bar--integrated .pagination-nav-button:first-child,
+    .pagination-bar--integrated .pagination-nav-button:last-child {
+        display: none;
+    }
+
+    .pagination-bar--integrated .pagination-page-info {
+        min-width: 92px;
+        margin: 0 2px;
+        font-size: 11px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 370px) {
+    .pagination-bar--integrated .pagination-page-size__native {
+        width: 78px;
+        min-width: 78px;
+        font-size: 10px;
+    }
+
+    .pagination-bar--integrated .pagination-page-info {
+        min-width: 82px;
+        font-size: 10px;
+    }
+}
+
+
+/* =========================================================
+   REFINAMENTO DESKTOP - AÇÕES CONTEXTUAIS
+   Estado aberto do botão e identificação discreta do registro.
+   ========================================================= */
+@media (min-width: 768px) {
+    .actions-toggle[aria-expanded="true"],
+    .admin-row-actions-toggle[aria-expanded="true"],
+    .menu-acoes-trigger[aria-expanded="true"],
+    .paciente-actions-toggle[aria-expanded="true"] {
+        color: var(--white);
+        background: var(--blue-600);
+        border-color: var(--blue-600);
+        box-shadow: 0 3px 9px rgba(37, 99, 235, 0.18);
+    }
+
+    .data-table tbody tr.caige-actions-row-active,
+    .data-grid__row.caige-actions-row-active,
+    .admin-record.caige-actions-row-active,
+    .lista-entidades__item.caige-actions-row-active {
+        background-color: var(--blue-50) !important;
+    }
+
+    .data-table tbody tr.caige-actions-row-active > td {
+        background-color: transparent !important;
+    }
+}
+
+
+/* =========================================================
+   PADRÃO DESKTOP V2 - GRIDS COMPACTAS E AÇÕES CONTEXTUAIS
+   Aplicado aos componentes globais .data-table e .data-grid.
+   Mobile permanece com suas regras específicas.
+   ========================================================= */
+@media (min-width: 768px) {
+    /* Densidade profissional: reduz espaço, não a legibilidade. */
+    .data-table th {
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+
+    .data-table td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        line-height: 1.25;
+    }
+
+    .data-grid__header > .data-grid__cell {
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+
+    .data-grid__row > .data-grid__cell {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        line-height: 1.25;
+    }
+
+    /* Botão de ações proporcional à nova densidade. */
+    .actions-toggle,
+    .admin-row-actions-toggle,
+    .menu-acoes-trigger,
+    .paciente-actions-toggle {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+        padding: 0 !important;
+        font-size: 16px;
+        border-radius: var(--radius-xs);
+    }
+
+    /* Estado aberto precisa vencer regras locais das páginas. */
+    .actions-toggle[aria-expanded="true"],
+    .admin-row-actions-toggle[aria-expanded="true"],
+    .menu-acoes-trigger[aria-expanded="true"],
+    .paciente-actions-toggle[aria-expanded="true"] {
+        color: var(--white) !important;
+        background: var(--blue-600) !important;
+        border-color: var(--blue-600) !important;
+        box-shadow: 0 2px 7px rgba(37, 99, 235, 0.20) !important;
+    }
+
+    .data-table tbody tr.caige-actions-row-active,
+    .data-grid__row.caige-actions-row-active,
+    .admin-record.caige-actions-row-active,
+    .lista-entidades__item.caige-actions-row-active {
+        background: var(--blue-50) !important;
+    }
+
+    .data-table tbody tr.caige-actions-row-active > td,
+    .data-grid__row.caige-actions-row-active > .data-grid__cell {
+        background: transparent !important;
+    }
+
+    /* Menu: feedback azul em ações comuns; perigo continua vermelho. */
+    .floating-actions-menu__item:hover:not(.floating-actions-menu__item--danger),
+    .floating-actions-menu__item:focus-visible:not(.floating-actions-menu__item--danger) {
+        color: var(--blue-700);
+        background: var(--blue-50);
+    }
+
+    /* Paginação numérica profissional no desktop. */
+    .pagination-numbered-pages {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .pagination-page-number {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        padding: 0;
+        display: inline-grid;
+        place-items: center;
+        color: var(--gray-600);
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: var(--radius-xs);
+        font-family: inherit;
+        font-size: var(--fonte-texto-auxiliar);
+        line-height: 1;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+            color var(--transition-fast),
+            background-color var(--transition-fast),
+            border-color var(--transition-fast);
+    }
+
+    .pagination-page-number:hover:not(.is-active) {
+        color: var(--blue-700);
+        background: var(--blue-50);
+        border-color: var(--blue-100);
+    }
+
+    .pagination-page-number.is-active {
+        color: var(--white);
+        background: var(--blue-600);
+        border-color: var(--blue-600);
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.18);
+        cursor: default;
+    }
+
+    .pagination-page-ellipsis {
+        min-width: 20px;
+        color: var(--gray-400);
+        text-align: center;
+        font-size: var(--fonte-texto-auxiliar);
+        line-height: 30px;
+    }
+
+    /* No desktop, o resumo textual é substituído pelas páginas. */
+    .pagination-navigation > .pagination-page-info {
+        display: none;
+    }
+
+    .pagination-navigation {
+        gap: 3px;
+    }
+
+    .pagination-nav-button {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        border: 1px solid var(--border-default);
+        background: var(--white);
+        font-size: 17px;
+    }
+
+    .pagination-nav-button:hover:not(:disabled) {
+        border-color: var(--blue-200);
+        background: var(--blue-50);
+    }
+
+    .pagination-nav-button:disabled {
+        background: var(--gray-50);
+        border-color: var(--border-light);
+    }
+}
+
+/* Mobile continua usando o resumo compacto e não páginas numeradas. */
+@media (max-width: 767px) {
+    .pagination-numbered-pages {
+        display: none !important;
+    }
+}
+
+
+/* =========================================================
+   ALINHAMENTO SEMÂNTICO - LISTAS TABULARES
+   Somente estruturas de grid/tabela; cards permanecem intactos.
+   ========================================================= */
+@media (min-width: 768px) {
+    .data-table td,
+    .data-grid__cell {
+        vertical-align: middle;
+    }
+
+    .data-table .text-cell,
+    .data-grid__cell.text-cell,
+    .data-table .description-cell,
+    .data-grid__cell.description-cell,
+    .data-table .details-cell,
+    .data-grid__cell.details-cell {
+        text-align: left !important;
+    }
+
+    .data-table .numeric-cell,
+    .data-grid__cell.numeric-cell,
+    .data-table .status-cell,
+    .data-grid__cell.status-cell,
+    .data-table .actions-cell,
+    .data-grid__cell.actions-cell {
+        text-align: center !important;
+    }
+
+    /* Geometria comum dos botões administrativos. */
+    .btn {
+        border-radius: var(--radius-xs);
+    }
+
+    .btn--primary,
+    .btn-primary {
+        color: var(--white);
+        background: var(--blue-600);
+        border-color: var(--blue-600);
+    }
+
+    .btn--primary:hover,
+    .btn-primary:hover {
+        background: var(--blue-700);
+        border-color: var(--blue-700);
+    }
+}
+
+
+/* =========================================================
+   POSICIONAMENTO GLOBAL DE MENUS FLUTUANTES - 15/09/2026
+   ========================================================= */
+.floating-actions-menu[data-placement="down"] {
+    transform-origin: top right;
+}
+
+.floating-actions-menu[data-placement="up"] {
+    transform-origin: bottom right;
+}

@@ -986,3 +986,124 @@ A classificação é calculada com o valor contínuo real antes do arredondament
 3. **Tratamento de Dados Incompletos**:
    - Se idade ou data de nascimento não puderem ser determinadas, a classificação retorna `null`, sem assumir regras silenciosas de adulto ou idoso.
 
+
+## Padrão mobile de listagens (V1 - 15/09/2026)
+
+Para telas até 767 px, o CAIGE diferencia visualmente entidades e históricos sem alterar o padrão desktop:
+
+- **Pacientes:** cada paciente é apresentado em card independente, diretamente sobre o fundo da página. O card usa avatar textual gerado pelas iniciais do nome, nome, idade/telefone, status e menu de ações. Não há foto persistida no banco.
+- **Movimentações:** eventos são apresentados como lista/timeline contínua, com marcador, linha de continuidade e separadores; não usar um card independente para cada evento.
+- **Painel / Movimentações importantes:** deve reutilizar a mesma linguagem visual da timeline de Movimentações. A diferença é somente de contexto/quantidade, não do componente visual do evento.
+- **Paginação:** em mobile, ocultar o seletor "Registros por página" e os atalhos de primeira/última página. Exibir uma barra branca compacta com anterior, intervalo (`1–10 de N`) e próxima. O tamanho de página continua controlado pela paginação e o desktop mantém todos os controles.
+- **Responsividade:** essas regras são exclusivas do mobile; desktop e tablet não devem ser descaracterizados por esse padrão.
+
+
+## Refinamento mobile V2 — listas e paginação (15/09/2026)
+
+- Pacientes continuam representados por cards individuais com avatar de iniciais; os cards usam branco, borda e sombra discretas para manter separação clara do fundo.
+- Movimentações usam timeline contínua. O trilho vertical e os pontos não são interrompidos pelos separadores horizontais.
+- O bloco de movimentações do Painel reutiliza a mesma geometria visual da timeline da tela Movimentações; muda apenas a quantidade de registros e a presença de “Ver todos”.
+- Em telas de até 767 px, o seletor de registros por página permanece disponível em versão compacta à esquerda; anterior/próxima e o resumo ficam alinhados à direita.
+- Primeira/última página continuam ocultas no celular para reduzir ruído visual.
+- Desktop permanece inalterado por estas regras.
+
+
+## Padrão desktop V2 — grids, ações e paginação (15/09/2026)
+
+- Grids administrativas que usam `.data-table` ou `.data-grid` adotam densidade compacta no desktop, reduzindo padding vertical sem reduzir a tipografia de leitura.
+- Botões contextuais `⋮` usam 28 x 28 px no desktop e permanecem proporcionais às linhas compactas.
+- Ao abrir um menu contextual, o acionador fica em azul CAIGE com ícone branco e o registro de origem recebe realce azul muito suave.
+- Itens comuns do menu usam feedback azul-claro em hover/foco; ações destrutivas preservam a semântica vermelha.
+- A paginação desktop reutilizável apresenta páginas numéricas com a página atual preenchida em azul CAIGE, além de primeira/anterior/próxima/última.
+- Quando há muitas páginas, a paginação usa reticências e mantém primeira, última e páginas próximas da atual.
+- O seletor de registros por página permanece à esquerda.
+- No mobile, não são exibidos botões numéricos de página; permanece o resumo compacto definido para telas pequenas.
+- Alinhamento de conteúdo continua semântico: textos descritivos à esquerda; identificadores, estados e ações podem permanecer centralizados conforme a coluna.
+
+
+## Padrão de ações administrativas e alinhamento semântico (15/09/2026)
+
+- Azul CAIGE é a cor de ações primárias e navegação. Verde é reservado para status/sucesso; vermelho, para ações destrutivas.
+- Ações primárias como criar, salvar e aplicar filtros usam botão azul preenchido.
+- Editar, calendário, atividades, recuperar, atualizar e exportar permanecem ações secundárias com menor peso visual.
+- Remover e excluir permanentemente mantêm semântica vermelha.
+- Botões de ações em listas administrativas usam altura e espaçamento consistentes no desktop.
+- Em grids, texto descritivo e nomes são alinhados à esquerda; datas, métricas, estados e ações curtas são centralizados quando semanticamente adequado.
+- Auditoria: Data, Tipo e Papel centralizados; Ação e Responsável alinhados à esquerda.
+- Cards de Cursos, Calendário, Arquivados e Prontuários não são convertidos em tabelas; recebem apenas consistência de ações quando aplicável.
+
+
+### Correção de implementação dos botões administrativos (15/09/2026)
+
+A implementação real do Painel de Gerenciamento usa `.btn-create` para ações de formulário e `.btn-small` para ações de registros. A regra histórica verde de `.btn-create` foi substituída pelo azul CAIGE. Assim, Criar Usuário, Criar Curso, Salvar semestre, Salvar dias e Adicionar data compartilham o padrão primário azul. Na Auditoria, Aplicar filtros é primário; Limpar, Atualizar e Exportar são secundários. `.btn-small-danger` permanece reservado a remoção/exclusão.
+
+
+### Semântica oficial de cores dos botões (15/09/2026)
+
+- **Azul:** ações operacionais/positivas, como Criar, Salvar, Aplicar, Editar, Calendário, Atividades e Recuperar.
+- **Vermelho:** cancelar/interromper ou destruir, como Cancelar, Remover, Excluir e Desativar. Cancelamentos comuns usam fundo branco, borda/texto vermelhos e ficam preenchidos de vermelho no hover.
+- **Verde:** estado de sucesso/ativo e confirmações; não deve ser usado como ação operacional comum.
+- **Amarelo:** atenção/alerta e situações que exigem cautela sem representar cancelamento ou destruição.
+- Em formulários com duas ações, a ação principal permanece azul preenchida e Cancelar permanece vermelho contornado, evitando competição de hierarquia.
+
+
+- Implementação confirmada no Painel de Gerenciamento: `#periodo-letivo-cancelar` e `#grade-periodo-cancelar` seguem explicitamente o padrão vermelho de cancelamento.
+
+
+## Histórico de semestres (15/09/2026)
+
+- A lista principal de Calendário de Frequência mantém todos os semestres Ativos/Planejados e apenas os 2 semestres Encerrados mais recentes.
+- Semestres Encerrados mais antigos permanecem no banco e são apresentados em “Ver histórico de semestres (X)”, agrupados por ano e em ordem cronológica decrescente.
+- O histórico é apenas uma organização visual: não arquiva, exclui nem altera vínculos com frequência, atividades ou relatórios.
+- O botão Calendário permanece disponível para consulta de períodos encerrados; Editar continua indisponível quando o semestre está Encerrado.
+
+
+### Referência visual aprovada — toggles e histórico (15/09/2026)
+
+- Movimentações importantes: em cabeçalho azul, o controle retrátil usa botão circular azul/translúcido de 28 px com chevron branco, preservando o componente e seu comportamento de rotação.
+- Histórico de semestres: usa uma linha compacta integrada ao fim da lista, com “Histórico de semestres” + contador à esquerda e “Ver histórico” + chevron à direita; não usa faixa azul de largura total.
+- Ao expandir o histórico, os semestres antigos permanecem agrupados por ano.
+- O botão Calendário dos semestres históricos continua usando o mesmo fluxo/evento dos demais períodos e preserva a abertura do modal de calendário; a organização em histórico é apenas visual.
+
+
+### Consulta de calendário no histórico (15/09/2026)
+
+- O botão Calendário de um semestre movido para o histórico abre um modal compacto de consulta, sem selecionar nem reabrir a área de edição/configuração do período.
+- O modal apresenta período, status e os dias de atendimento obtidos da grade real daquele semestre.
+- Não são inventados horários: o modelo atual de calendário registra dias de atendimento e a própria tela informa que horários não entram nessa configuração.
+- Semestres recentes continuam usando o fluxo normal de Calendário da página.
+
+
+## Posicionamento de menus, dropdowns e accordions (15/09/2026)
+
+- Menus flutuantes de ações usam auto-flip: abrem para baixo quando há espaço e para cima quando estão próximos ao limite inferior da viewport.
+- Menus/popovers não devem deslocar a página para se tornarem visíveis no desktop.
+- O seletor de pacientes da Frequência segue a mesma regra no desktop; a rolagem assistida fica restrita a telas pequenas.
+- Accordions fazem parte do fluxo normal do documento: expandem para baixo e aumentam naturalmente a altura da página, sem `scrollIntoView`, `scrollTo` ou reposicionamento automático.
+- O Histórico de semestres usa uma única barra clicável com contador e chevron; o Calendário dos períodos históricos mantém seu modal de consulta.
+- Rolagens usadas para validação de formulário, paginação ou navegação explícita até um conteúdo solicitado pelo usuário não são tratadas como menus/popovers e permanecem quando funcionalmente necessárias.
+
+
+## Bloqueio por calendário de frequência (15/09/2026)
+
+- Relatórios dependentes do calendário são interrompidos com advertência quando não existe semestre/calendário aplicável ao período.
+- O PDF não é liberado para um relatório bloqueado por ausência de calendário.
+- Registro de presença depende de semestre `ATIVO`, dia semanal previsto para curso/atividade e ausência de exceção na data.
+- As validações críticas ficam no Backend; o Frontend comunica o motivo ao usuário.
+
+
+### Frequência — regra definitiva por atividade
+- Atividade sem dias próprios cadastrados gera advertência e não aceita presença.
+- Não há fallback dos dias gerais do curso para atividades.
+- Dia atual fora da grade própria da atividade bloqueia presença.
+- Relatório sem calendário calculável é bloqueado antes da apresentação dos resultados.
+
+
+### Relatório de Frequência — estados e filtros
+- “Todos os cursos” e “Todas as atividades” são filtros válidos.
+- Estado inicial/restaurado não exibe advertência automática nem executa relatório.
+- Advertência de calendário usa o estado vazio com ícone CAIGE e aparece somente após solicitação explícita do relatório.
+
+### Relatório de Frequência — detalhamento compacto
+- Linhas compactas no desktop; “+ N outros” fica no canto superior direito e abre modal, sem expandir a linha.
+- Seleção de paciente inicia vazia.

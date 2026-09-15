@@ -292,6 +292,7 @@ CREATE TABLE questoes_questionarios (
   id_questionario INT NOT NULL,
   id_pergunta     INT NOT NULL,
   ordem_pergunta  INT NOT NULL DEFAULT 0,
+  disposicao      ENUM('automatico','linha_inteira','lado_a_lado') NOT NULL DEFAULT 'automatico',
   ativo           BOOLEAN NOT NULL DEFAULT TRUE,
   criado_em       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   atualizado_em   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

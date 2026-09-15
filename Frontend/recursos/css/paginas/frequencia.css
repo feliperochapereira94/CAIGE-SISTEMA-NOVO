@@ -1178,3 +1178,158 @@
     }
 }
 
+
+
+/* =========================================================
+   PADRÃO CAIGE DESKTOP - GRID DE FREQUÊNCIA
+   Texto à esquerda; métricas e estados centralizados.
+   ========================================================= */
+@media (min-width: 768px) {
+    .frequency-table th:first-child,
+    .frequency-table td:first-child,
+    .frequencia-table th:first-child,
+    .frequencia-table td:first-child,
+    .frequency-grid .data-grid__cell:first-child {
+        text-align: left !important;
+    }
+
+    .frequency-table th:not(:first-child),
+    .frequency-table td:not(:first-child),
+    .frequencia-table th:not(:first-child),
+    .frequencia-table td:not(:first-child) {
+        text-align: center;
+    }
+}
+
+
+/* =========================================================
+   DROPDOWN INTELIGENTE - FREQUÊNCIA (DESKTOP)
+   ========================================================= */
+@media (min-width: 768px) {
+    .frequencia-page .attendance-patient-combobox.drop-up .attendance-patient-dropdown {
+        top: auto;
+        bottom: calc(100% + 4px);
+    }
+}
+
+
+/* Relatório de frequência: linha compacta e registros adicionais em modal. */
+@media (min-width: 768px) {
+    .frequencia-page .frequency-report-grid__row .data-grid__cell {
+        min-height: 58px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+    .frequencia-page .frequency-report-grid__header .data-grid__cell {
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+}
+
+.frequencia-page .report-records-summary__top {
+    position: relative;
+    min-height: 38px;
+    padding-right: 78px;
+}
+
+.frequencia-page .report-records-modal-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-height: 24px;
+    padding: 2px 7px;
+    border: 1px solid var(--blue-200);
+    border-radius: 3px;
+    background: var(--gray-50);
+    color: var(--blue-700);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.frequencia-page .report-records-modal-button:hover,
+.frequencia-page .report-records-modal-button:focus-visible {
+    border-color: var(--blue-500);
+    background: var(--blue-50);
+}
+
+.frequencia-page .report-records-calendar-note {
+    display: block;
+    margin-top: 3px;
+    color: var(--gray-500);
+    font-size: 11px;
+    line-height: 1.25;
+}
+
+.report-records-modal { max-height: min(78vh, 680px); }
+.report-records-modal__list {
+    display: grid;
+    gap: 8px;
+    max-height: min(52vh, 480px);
+    overflow-y: auto;
+}
+.report-record-modal-item {
+    padding: 10px 12px;
+    border: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+.report-record-modal-item.is-incompatible {
+    border-left: 3px solid #f59e0b;
+    background: #fffbeb;
+}
+.report-record-modal-item__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 3px;
+}
+.report-record-modal-item__status {
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 600;
+}
+@media (max-width: 767px) {
+    .frequencia-page .report-records-summary__top { padding-right: 0; }
+    .frequencia-page .report-records-modal-button {
+        position: static;
+        display: inline-flex;
+        margin-top: 5px;
+    }
+    .report-record-modal-item__header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+
+
+/* Relatório de frequência — densidade alinhada às listas de Pacientes/Auditoria. */
+@media (min-width: 768px) {
+    .frequencia-page .frequency-report-grid__row .data-grid__cell {
+        min-height: 44px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .frequencia-page .frequency-report-grid__header .data-grid__cell {
+        min-height: 42px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .frequencia-page .report-records-summary__top {
+        min-height: 32px;
+    }
+
+    .frequencia-page .report-record {
+        line-height: 1.25;
+    }
+
+    .frequencia-page .report-record__meta {
+        margin-top: 2px;
+        line-height: 1.2;
+    }
+}

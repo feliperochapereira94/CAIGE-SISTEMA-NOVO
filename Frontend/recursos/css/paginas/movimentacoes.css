@@ -994,3 +994,134 @@
     }
 }
 
+
+/* =========================================================
+   HOTFIX MOBILE - ROLAGEM ÚNICA DA PÁGINA
+   Evita disputa de gesto entre o scroll vertical da página e o
+   scroll interno herdado de .admin-list__body em dispositivos touch.
+   No mobile, a lista de movimentações cresce com o conteúdo e a
+   rolagem fica exclusivamente a cargo da página.
+   ========================================================= */
+@media (max-width: 767px) {
+    .activities-page .activities-table-card.admin-list {
+        overflow: visible;
+    }
+
+    .activities-page .activities-table.admin-list__body {
+        flex: 0 0 auto;
+        max-height: none;
+        overflow: visible;
+        overscroll-behavior: auto;
+        -webkit-overflow-scrolling: auto;
+        touch-action: pan-y;
+    }
+
+    .activities-page .activities-table-body {
+        max-height: none;
+        overflow: visible;
+        overscroll-behavior: auto;
+        touch-action: pan-y;
+    }
+}
+
+/* =========================================================
+   HOTFIX MOBILE V1 - MOVIMENTAÇÕES COMO LISTA/TIMELINE
+   Eventos são histórico: uma superfície contínua, sem card por item.
+   ========================================================= */
+@media (max-width: 767px) {
+    .activities-page .activities-table-card.admin-list {
+        padding: 0;
+        background: var(--surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xs);
+        overflow: visible;
+    }
+
+    .activities-page .activities-table-body {
+        gap: 0;
+        padding: 0 12px;
+    }
+
+    .activities-page .activities-table-body > .activities-row {
+        position: relative;
+        min-height: 76px;
+        padding: 12px 4px 12px 22px;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .activities-page .activities-table-body > .activities-row + .activities-row {
+        border-top: 1px solid var(--border-light);
+    }
+
+    .activities-page .activities-table-body > .activities-row::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 18px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--blue-600);
+        box-shadow: 0 0 0 3px var(--blue-50);
+    }
+
+    .activities-page .activities-table-body > .activities-row::after {
+        content: '';
+        position: absolute;
+        left: 8.5px;
+        top: 29px;
+        bottom: -1px;
+        width: 1px;
+        background: var(--blue-100);
+    }
+
+    .activities-page .activities-table-body > .activities-row:last-child::after {
+        display: none;
+    }
+
+    .activities-page .activities-row .activity-responsible {
+        border-top: 0;
+        padding-top: 1px;
+    }
+}
+
+
+/* =========================================================
+   HOTFIX MOBILE V2 - TIMELINE CONTÍNUA
+   O separador horizontal não atravessa mais o trilho vertical.
+   ========================================================= */
+@media (max-width: 767px) {
+    .activities-page .activities-table-body > .activities-row {
+        background-image:
+            linear-gradient(var(--border-light), var(--border-light));
+        background-repeat: no-repeat;
+        background-position: right bottom;
+        background-size: calc(100% - 22px) 1px;
+    }
+
+    .activities-page .activities-table-body > .activities-row + .activities-row {
+        border-top: 0;
+    }
+
+    .activities-page .activities-table-body > .activities-row:last-child {
+        background-image: none;
+    }
+
+    .activities-page .activities-table-body > .activities-row::after {
+        top: 26px;
+        bottom: -26px;
+        z-index: 0;
+    }
+
+    .activities-page .activities-table-body > .activities-row::before {
+        z-index: 1;
+    }
+
+    .activities-page .activities-table-body > .activities-row:last-child::after {
+        display: none;
+    }
+}

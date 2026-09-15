@@ -85,6 +85,7 @@ class PaginacaoLista {
     this._pickerPanel = null;
     this._pickerSearch = null;
     this._pickerOptions = null;
+    this._paginasContainer = null;
 
     this._normalizarQuantidade();
     this._criarSeletorPesquisavel();
@@ -562,6 +563,177 @@ class PaginacaoLista {
   }
 
 
+  _garantirPaginasNumericas() {
+    const indicador =
+      this._elemento(this.seletorIndicador);
+
+    if (!indicador) {
+      return null;
+    }
+
+    if (
+      this._paginasContainer &&
+      this._paginasContainer.isConnected
+    ) {
+      return this._paginasContainer;
+    }
+
+    const container =
+      document.createElement('div');
+
+    container.className =
+      'pagination-numbered-pages';
+
+    container.setAttribute(
+      'aria-label',
+      'Escolher página'
+    );
+
+    indicador.insertAdjacentElement(
+      'beforebegin',
+      container
+    );
+
+    container.addEventListener(
+      'click',
+      (evento) => {
+        const botao =
+          evento.target.closest(
+            '.pagination-page-number'
+          );
+
+        if (!botao || botao.disabled) {
+          return;
+        }
+
+        const pagina =
+          Number(botao.dataset.page);
+
+        if (
+          !Number.isFinite(pagina) ||
+          pagina < 1 ||
+          pagina > this.obterTotalPaginas() ||
+          pagina === this.paginaAtual
+        ) {
+          return;
+        }
+
+        this.paginaAtual = pagina;
+        this.renderizar();
+        this._resetarScroll();
+      }
+    );
+
+    this._paginasContainer = container;
+
+    return container;
+  }
+
+
+  _paginasVisiveis(totalPaginas) {
+    if (totalPaginas <= 7) {
+      return Array.from(
+        { length: totalPaginas },
+        (_, indice) => indice + 1
+      );
+    }
+
+    const atual = this.paginaAtual;
+    const paginas = new Set([
+      1,
+      totalPaginas,
+      atual - 1,
+      atual,
+      atual + 1
+    ]);
+
+    if (atual <= 4) {
+      [2, 3, 4, 5].forEach(
+        (pagina) => paginas.add(pagina)
+      );
+    }
+
+    if (atual >= totalPaginas - 3) {
+      [
+        totalPaginas - 4,
+        totalPaginas - 3,
+        totalPaginas - 2,
+        totalPaginas - 1
+      ].forEach(
+        (pagina) => paginas.add(pagina)
+      );
+    }
+
+    const ordenadas =
+      [...paginas]
+        .filter(
+          (pagina) =>
+            pagina >= 1 &&
+            pagina <= totalPaginas
+        )
+        .sort((a, b) => a - b);
+
+    const resultado = [];
+
+    ordenadas.forEach(
+      (pagina, indice) => {
+        const anterior =
+          ordenadas[indice - 1];
+
+        if (
+          indice > 0 &&
+          pagina - anterior > 1
+        ) {
+          resultado.push('...');
+        }
+
+        resultado.push(pagina);
+      }
+    );
+
+    return resultado;
+  }
+
+
+  _renderizarPaginasNumericas(totalPaginas) {
+    const container =
+      this._garantirPaginasNumericas();
+
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML =
+      this._paginasVisiveis(totalPaginas)
+        .map((pagina) => {
+          if (pagina === '...') {
+            return `
+              <span
+                class="pagination-page-ellipsis"
+                aria-hidden="true"
+              >…</span>
+            `;
+          }
+
+          const atual =
+            pagina === this.paginaAtual;
+
+          return `
+            <button
+              class="pagination-page-number${atual ? ' is-active' : ''}"
+              type="button"
+              data-page="${pagina}"
+              ${atual ? 'aria-current="page"' : ''}
+              aria-label="Página ${pagina}"
+            >
+              ${pagina}
+            </button>
+          `;
+        })
+        .join('');
+  }
+
+
   _resetarScroll() {
     const paginacao =
       this._elemento(this.seletorPaginacao);
@@ -718,6 +890,10 @@ class PaginacaoLista {
           `${registroInicio}–${fim} de ${total}`;
       }
     }
+
+    this._renderizarPaginasNumericas(
+      totalPaginas
+    );
 
     const naPrimeira =
       total === 0 ||

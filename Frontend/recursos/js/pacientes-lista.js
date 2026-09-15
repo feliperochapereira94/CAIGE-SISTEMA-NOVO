@@ -42,6 +42,20 @@
   }
 
 
+  function iniciaisPaciente(nome) {
+    const partes = String(nome || '')
+      .replace(/\[TESTE[^\]]*\]/gi, '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (!partes.length) return 'P';
+    if (partes.length === 1) return partes[0].slice(0, 2).toLocaleUpperCase('pt-BR');
+
+    return `${partes[0][0]}${partes[partes.length - 1][0]}`.toLocaleUpperCase('pt-BR');
+  }
+
+
   function atributo(valor) {
     return String(valor ?? '')
       .replace(/&/g, '&amp;')
@@ -167,6 +181,7 @@
 
           <td class="paciente-name-cell" title="${atributo(nome)}">
             <div class="paciente-cell">
+              <span class="paciente-avatar" aria-hidden="true">${atributo(iniciaisPaciente(nome))}</span>
               <div class="paciente-info">
                 <span class="paciente-name">${nome}</span>
               </div>

@@ -2241,3 +2241,595 @@
         border-left-width: 1px;
     }
 }
+
+
+/* =========================================================
+   PADRÃO CAIGE DESKTOP - GERENCIAMENTO
+   Alinhamento semântico, botões administrativos e auditoria.
+   ========================================================= */
+@media (min-width: 768px) {
+    /* Auditoria: datas/tipos/papéis são dados curtos;
+       ação e responsável são leitura textual. */
+    .audit-table th:nth-child(1),
+    .audit-table td:nth-child(1),
+    .audit-table th:nth-child(2),
+    .audit-table td:nth-child(2),
+    .audit-table th:nth-child(5),
+    .audit-table td:nth-child(5) {
+        text-align: center !important;
+    }
+
+    .audit-table th:nth-child(3),
+    .audit-table td:nth-child(3),
+    .audit-table th:nth-child(4),
+    .audit-table td:nth-child(4) {
+        text-align: left !important;
+    }
+
+    .audit-table th:nth-child(3),
+    .audit-table td:nth-child(3) {
+        padding-left: 18px !important;
+    }
+
+    .audit-table th:nth-child(4),
+    .audit-table td:nth-child(4) {
+        padding-left: 16px !important;
+    }
+
+    /* Ações de registros administrativos com geometria única. */
+    .admin-actions,
+    .entity-actions,
+    .lista-entidades__acoes,
+    .period-actions,
+    .archive-actions {
+        align-items: center;
+        gap: 7px;
+    }
+
+    .admin-actions button,
+    .admin-actions .btn,
+    .entity-actions button,
+    .entity-actions .btn,
+    .lista-entidades__acoes button,
+    .lista-entidades__acoes .btn,
+    .period-actions button,
+    .period-actions .btn,
+    .archive-actions button,
+    .archive-actions .btn {
+        min-height: 34px;
+        height: 34px;
+        padding: 0 13px;
+        border-radius: var(--radius-xs);
+        font-size: var(--fonte-texto-auxiliar);
+        font-weight: 600;
+        line-height: 1;
+    }
+}
+
+/* Ações primárias administrativas seguem a identidade azul CAIGE.
+   Verde fica reservado para estados/sucesso. */
+#btnCriarCurso,
+#btnSalvarSemestre,
+#btnAplicarFiltros,
+.btn-admin-primary,
+.admin-primary-action {
+    color: var(--white) !important;
+    background: var(--blue-600) !important;
+    border-color: var(--blue-600) !important;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.16);
+}
+
+#btnCriarCurso:hover,
+#btnSalvarSemestre:hover,
+#btnAplicarFiltros:hover,
+.btn-admin-primary:hover,
+.admin-primary-action:hover {
+    background: var(--blue-700) !important;
+    border-color: var(--blue-700) !important;
+}
+
+/* Destrutivas continuam explicitamente vermelhas. */
+.btn-danger-outline,
+.btn-remover,
+.btn-excluir-permanentemente {
+    color: var(--red-600);
+    background: var(--white);
+    border-color: var(--red-500);
+}
+
+.btn-danger-outline:hover,
+.btn-remover:hover,
+.btn-excluir-permanentemente:hover {
+    color: var(--white);
+    background: var(--red-600);
+    border-color: var(--red-600);
+}
+
+
+/* =========================================================
+   HOTFIX 15/09/2026 - BOTÕES REAIS DO PAINEL ADMINISTRATIVO
+   Corrige a regra histórica de .btn-create verde na origem
+   visual da página e padroniza as classes efetivamente usadas.
+   ========================================================= */
+.admin-page .btn-create {
+    color: var(--white) !important;
+    background: linear-gradient(
+        135deg,
+        var(--blue-700) 0%,
+        var(--blue-600) 100%
+    ) !important;
+    border: 1px solid var(--blue-600) !important;
+    box-shadow: 0 5px 12px rgba(37, 99, 235, 0.16) !important;
+}
+
+.admin-page .btn-create:hover {
+    background: linear-gradient(
+        135deg,
+        var(--blue-800) 0%,
+        var(--blue-700) 100%
+    ) !important;
+    border-color: var(--blue-700) !important;
+    box-shadow: 0 7px 14px rgba(37, 99, 235, 0.20) !important;
+}
+
+.admin-page .btn-create:focus-visible {
+    outline: 2px solid var(--blue-300);
+    outline-offset: 2px;
+}
+
+.admin-page .btn-create:disabled {
+    color: var(--gray-400) !important;
+    background: var(--gray-100) !important;
+    border-color: var(--gray-200) !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+}
+
+/* Aplicar filtros é a ação primária real da auditoria. */
+.admin-page #audit-apply-filters {
+    color: var(--white);
+    background: var(--blue-600);
+    border-color: var(--blue-600);
+}
+
+.admin-page #audit-apply-filters:hover {
+    background: var(--blue-700);
+    border-color: var(--blue-700);
+}
+
+/* Demais .btn-small são secundários; perigo mantém vermelho. */
+.admin-page .btn-small:not(.btn-small-danger):not(#audit-apply-filters) {
+    color: var(--blue-800);
+    background: var(--white);
+    border-color: var(--blue-300);
+}
+
+.admin-page .btn-small:not(.btn-small-danger):not(#audit-apply-filters):hover {
+    color: var(--white);
+    background: var(--blue-700);
+    border-color: var(--blue-700);
+}
+
+.admin-page .btn-small-danger {
+    color: var(--danger-700);
+    background: var(--white);
+    border-color: var(--danger-300);
+}
+
+.admin-page .btn-small-danger:hover {
+    color: var(--white);
+    background: var(--danger-600);
+    border-color: var(--danger-600);
+}
+
+/* Geometria consistente dos botões de cards/listas do gerenciamento. */
+@media (min-width: 768px) {
+    .admin-page .lista-entidades__acoes .btn-small,
+    .admin-page .course-actions .btn-small,
+    .admin-page .archive-list .btn-small,
+    .admin-page .period-list .btn-small,
+    .admin-page .period-actions .btn-small {
+        min-height: 34px;
+        height: 34px;
+        padding: 0 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+}
+
+
+/* =========================================================
+   HOTFIX 15/09/2026 - SEMÂNTICA DE CANCELAMENTO
+   Cancelar/abortar edição = ação vermelha contornada.
+   Não compete visualmente com a ação primária azul.
+   ========================================================= */
+.admin-page .btn-cancel,
+.admin-page .btn-cancelar,
+.admin-page .cancel-edit,
+.admin-page [data-action="cancel"],
+.admin-page [data-action="cancelar"] {
+    color: var(--danger-700) !important;
+    background: var(--white) !important;
+    border-color: var(--danger-400) !important;
+    box-shadow: none !important;
+}
+
+.admin-page .btn-cancel:hover,
+.admin-page .btn-cancelar:hover,
+.admin-page .cancel-edit:hover,
+.admin-page [data-action="cancel"]:hover,
+.admin-page [data-action="cancelar"]:hover {
+    color: var(--white) !important;
+    background: var(--danger-600) !important;
+    border-color: var(--danger-600) !important;
+}
+
+.admin-page .btn-cancel:focus-visible,
+.admin-page .btn-cancelar:focus-visible,
+.admin-page .cancel-edit:focus-visible,
+.admin-page [data-action="cancel"]:focus-visible,
+.admin-page [data-action="cancelar"]:focus-visible {
+    outline: 2px solid var(--danger-300);
+    outline-offset: 2px;
+}
+
+.admin-page .btn-cancel:disabled,
+.admin-page .btn-cancelar:disabled,
+.admin-page .cancel-edit:disabled,
+.admin-page [data-action="cancel"]:disabled,
+.admin-page [data-action="cancelar"]:disabled {
+    color: var(--gray-400) !important;
+    background: var(--gray-100) !important;
+    border-color: var(--gray-200) !important;
+    cursor: not-allowed;
+}
+
+/* Classe semântica reutilizável para cancelamento futuro. */
+.btn--cancel,
+.btn-cancel {
+    color: var(--danger-700) !important;
+    background: var(--white) !important;
+    border-color: var(--danger-400) !important;
+}
+
+.btn--cancel:hover,
+.btn-cancel:hover {
+    color: var(--white) !important;
+    background: var(--danger-600) !important;
+    border-color: var(--danger-600) !important;
+}
+
+
+/* =========================================================
+   HOTFIX 15/09/2026 - IDs REAIS DOS CANCELAMENTOS
+   usuarios.html:
+   - #periodo-letivo-cancelar
+   - #grade-periodo-cancelar
+   ========================================================= */
+.admin-page #periodo-letivo-cancelar,
+.admin-page #grade-periodo-cancelar {
+    color: var(--danger-700) !important;
+    background: var(--white) !important;
+    border-color: var(--danger-400) !important;
+    box-shadow: none !important;
+}
+
+.admin-page #periodo-letivo-cancelar:hover,
+.admin-page #grade-periodo-cancelar:hover {
+    color: var(--white) !important;
+    background: var(--danger-600) !important;
+    border-color: var(--danger-600) !important;
+}
+
+.admin-page #periodo-letivo-cancelar:focus-visible,
+.admin-page #grade-periodo-cancelar:focus-visible {
+    outline: 2px solid var(--danger-300);
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   HISTÓRICO DE SEMESTRES - 15/09/2026
+   Mantém ativo/planejado + 2 encerrados recentes em destaque.
+   Demais encerrados ficam em histórico cronológico expansível.
+   ========================================================= */
+.periodos-principais,
+.periodos-historico__lista {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.periodos-historico {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+}
+
+.periodos-historico__toggle {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--blue-700);
+    background: var(--blue-50);
+    border: 1px solid var(--blue-200);
+    border-radius: var(--radius-xs);
+    font: inherit;
+    font-size: var(--fonte-texto-auxiliar);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.periodos-historico__toggle:hover {
+    background: var(--blue-100);
+    border-color: var(--blue-300);
+}
+
+.periodos-historico__toggle:focus-visible {
+    outline: 2px solid var(--blue-300);
+    outline-offset: 2px;
+}
+
+.periodos-historico__seta {
+    font-size: 18px;
+    line-height: 1;
+    transition: transform var(--transition-fast);
+}
+
+.periodos-historico__toggle[aria-expanded="true"] .periodos-historico__seta {
+    transform: rotate(180deg);
+}
+
+.periodos-historico__conteudo {
+    margin-top: var(--space-3);
+}
+
+.periodos-historico__conteudo[hidden] {
+    display: none !important;
+}
+
+.periodos-historico__ano + .periodos-historico__ano {
+    margin-top: var(--space-4);
+}
+
+.periodos-historico__titulo-ano {
+    margin: 0 0 var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--fonte-texto-auxiliar);
+    font-weight: 800;
+}
+
+.periodo-item--historico {
+    background: var(--gray-50);
+}
+
+@media (max-width: 767px) {
+    .periodos-historico__toggle {
+        min-height: 44px;
+    }
+}
+
+
+/* =========================================================
+   REFERÊNCIA APROVADA - HISTÓRICO DE SEMESTRES
+   Linha compacta e alinhada; calendário histórico mantém modal.
+   ========================================================= */
+.periodos-historico__barra {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.periodos-historico__resumo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: var(--text-primary);
+    font-size: var(--fonte-texto-auxiliar);
+}
+
+.periodos-historico__contador {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    background: var(--gray-100);
+    font-size: var(--fonte-texto-pequeno);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.periodos-historico__toggle.periodos-historico__toggle--compacto {
+    width: auto;
+    min-width: 0;
+    min-height: 30px;
+    padding: 3px 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    color: var(--blue-700);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-xs);
+    box-shadow: none;
+    font-size: var(--fonte-texto-pequeno);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.periodos-historico__toggle.periodos-historico__toggle--compacto:hover {
+    color: var(--blue-800);
+    background: var(--blue-50);
+    border-color: transparent;
+}
+
+.periodos-historico__toggle.periodos-historico__toggle--compacto .periodos-historico__seta {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 14px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+@media (max-width: 767px) {
+    .periodos-historico__barra {
+        min-height: 42px;
+    }
+
+    .periodos-historico__resumo {
+        gap: 6px;
+    }
+
+    .periodos-historico__toggle.periodos-historico__toggle--compacto {
+        min-height: 34px;
+    }
+}
+
+
+/* =========================================================
+   CORREÇÃO FINAL - HISTÓRICO / MODAL DE CALENDÁRIO
+   ========================================================= */
+.periodos-historico {
+    margin-top: 12px;
+    padding-top: 10px;
+}
+
+.periodos-historico__barra {
+    min-height: 34px;
+}
+
+.periodos-historico__conteudo {
+    margin-top: 8px;
+}
+
+.periodos-historico__titulo-ano {
+    margin: 0 0 7px;
+}
+
+.periodo-item--historico {
+    background: var(--gray-50);
+}
+
+.calendario-periodo-modal {
+    max-width: 440px;
+}
+
+.calendario-periodo-resumo {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.calendario-periodo-resumo > div {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px;
+    align-items: start;
+}
+
+.calendario-periodo-resumo dt {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.calendario-periodo-resumo dd {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.calendario-periodo-modal__acoes {
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+
+
+/* =========================================================
+   ACCORDION DO HISTÓRICO DE SEMESTRES - 15/09/2026
+   Referência: barra única clicável, chevron alinhado e fluxo natural.
+   ========================================================= */
+.periodos-historico {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-light);
+}
+
+.periodos-historico__accordion {
+    width: 100%;
+    min-height: 40px;
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-primary);
+    background: var(--gray-50);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xs);
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.periodos-historico__accordion:hover {
+    background: var(--blue-50);
+    border-color: var(--blue-200);
+}
+
+.periodos-historico__accordion:focus-visible {
+    outline: 2px solid var(--blue-300);
+    outline-offset: 2px;
+}
+
+.periodos-historico__accordion .periodos-historico__resumo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.periodos-historico__accordion .periodos-historico__seta {
+    width: 8px;
+    height: 8px;
+    margin: -3px 3px 0 0;
+    flex: 0 0 8px;
+    border-right: 2px solid var(--blue-700);
+    border-bottom: 2px solid var(--blue-700);
+    transform: rotate(45deg);
+    transition: transform var(--transition-fast);
+}
+
+.periodos-historico__accordion[aria-expanded="true"] .periodos-historico__seta {
+    margin-top: 3px;
+    transform: rotate(225deg);
+}
+
+.periodos-historico__conteudo {
+    margin-top: 10px;
+    max-height: none;
+    overflow: visible;
+}
+
+.periodos-historico__conteudo[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    .periodos-historico__accordion {
+        min-height: 44px;
+        padding: 8px 10px;
+    }
+}
