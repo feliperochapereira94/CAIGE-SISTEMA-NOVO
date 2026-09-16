@@ -27,7 +27,6 @@ Esta versão corresponde à **V1 congelada**, com frontend e backend revisados, 
 - Flatpickr (datas)
 - jsPDF + jsPDF AutoTable (PDF)
 - ExcelJS (Excel)
-- live-server (desenvolvimento)
 
 ### Backend
 - Node.js
@@ -41,7 +40,7 @@ Esta versão corresponde à **V1 congelada**, com frontend e backend revisados, 
 
 ### Banco de dados
 - MySQL
-- Scripts SQL e migrations em `Backend/database/`
+- Scripts SQL`
 
 ## Estrutura do projeto
 ```text
@@ -94,7 +93,6 @@ cd Frontend
 npm install
 npm run serve
 ```
-Servidor padrão do frontend: `http://localhost:5500`
 
 ## Documentação
 - **Índice geral**: `docs/README.md`
