@@ -106,9 +106,3 @@ Servidor padrão do frontend: `http://localhost:5500`
 - **Manual do usuário**: `docs/usuario/MANUAL_USUARIO.md`
 - **Roteiro do manual ilustrado**: `docs/usuario/ROTEIRO_MANUAL_ILUSTRADO.md`
 - **API**: `docs/api/README_API.md` e `docs/api/openapi.yaml`
-
-## Observações importantes
-- Não versionar `.env` com dados reais.
-- Não incluir `node_modules` nos pacotes finais.
-- Para documentação de API, usar também `http://localhost:3000/api-docs`.
-- Esta V1 já contempla as limpezas de legado aprovadas no backend e no frontend.
